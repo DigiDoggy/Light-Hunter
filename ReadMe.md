@@ -94,3 +94,10 @@ npm run dev
 * `nodemon` (dev only)
 
 ---
+### Git Command
+
+* `git fetch --prune` - Will update information about branches and automatically
+
+## Close port
+* lsof -i tcp:8080
+* sudo kill 12345
