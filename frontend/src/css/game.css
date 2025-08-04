@@ -33,7 +33,7 @@ body {
     box-sizing: border-box;
 }
 .skin1 {
-    background-image: url("../assets/skins/new.png");
+    background-image: url("../assets/skins/player1/new.png");
     background-size: cover;
     position: absolute;
     width: 20px;
