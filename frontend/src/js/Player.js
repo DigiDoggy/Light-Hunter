@@ -3,10 +3,17 @@ import GameObject from "./GameObject.js";
 
 export default class Player extends GameObject {
     constructor(x, y, width = 20, height = 20, name = "player", speed = 200, gameContainer) {
-        super(x, y, width, height, "player", gameContainer);
+
+        super(x, y, width, height, 'player skin1' , gameContainer);
 
         this.name = name;
         this.speed = speed;
+
+    }
+    setSkin(newSkin){
+        this.element.classList.remove(this.skin);
+        this.element.classList.add(newSkin)
+        this.skin=newSkin;
     }
 
     #norm = Math.SQRT1_2;

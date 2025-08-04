@@ -22,10 +22,7 @@ body {
 }
 
 .player {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: red;
+
     /*transition: transform 100ms linear;*/
 }
 
@@ -34,4 +31,11 @@ body {
     background: cyan;
     border: 2px solid green;
     box-sizing: border-box;
+}
+.skin1 {
+    background-image: url("../assets/skins/new.png");
+    background-size: cover;
+    position: absolute;
+    width: 20px;
+    height: 20px;
 }

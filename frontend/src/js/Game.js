@@ -7,7 +7,8 @@ import Camera from "./Camera.js";
 export default class Game {
     constructor() {
         this.gameContainer = document.getElementById("gameContainer");
-        this.player = new Player(100, 100, 20, 20);
+        //todo need rewrite picture without border. Create little bit bigger
+        this.player = new Player(100, 100, 60, 60);
         this.camera = new Camera(1.5);
 
         this.gameObjects = [];
@@ -43,7 +44,6 @@ export default class Game {
     gameLoop(time) {
         this.delta = (time - this.lastTime) / 1000;
         this.lastTime = time;
-
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
 
