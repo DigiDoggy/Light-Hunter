@@ -3,44 +3,22 @@ import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
 import Camera from "./Camera.js";
+import Flashlight from "./flashlight.js";
 
 export default class Game {
     constructor() {
         this.gameContainer = document.getElementById("gameContainer");
         this.player = new Player(100, 100, 20, 20);
         this.camera = new Camera(1.5);
-
+        this.flash = new Flashlight();
         this.gameObjects = [];
         this.gridSize = 100;
         this.spatialGrid = [];
         this.keys = {};
         this.lastTime = performance.now();
 
-        this.flashlightOverlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        this.flashlightOverlay.setAttribute("width", "100%");
-        this.flashlightOverlay.setAttribute("height", "100%");
-        this.flashlightOverlay.style.position = "absolute";
-        this.flashlightOverlay.style.top = "0";
-        this.flashlightOverlay.style.left = "0";
-        this.flashlightOverlay.style.pointerEvents = "none";
-        this.flashlightOverlay.style.zIndex = "100";
 
-        this.flashlightOverlay.innerHTML = `
-          <defs>
-            <radialGradient id="flashlight-cone-gradient" r="100%">
-              <stop offset="0%" stop-color="white" stop-opacity="1" />
-              <stop offset="100%" stop-color="black" stop-opacity="1" />
-            </radialGradient>
-
-            <mask id="flashlight-mask">
-              <rect width="100%" height="100%" fill="white"/>
-              <polygon id="flashlight-cone" opacity="1" points="" fill="url(#flashlight-cone-gradient)"/>
-            </mask>
-          </defs>
-          <rect width="100%" height="100%" fill="black" style="opacity: 92%" mask="url(#flashlight-mask)"/>
-        `;
-
-        this.gameContainer.appendChild(this.flashlightOverlay);
+        this.gameContainer.appendChild(this.flash.flashlightOverlay);
 
 
         this.init();
@@ -87,7 +65,7 @@ export default class Game {
             points.push(`${Math.round(r.x)},${Math.round(r.y)}`);
         }
 
-        const cone = this.flashlightOverlay.querySelector("#flashlight-cone");
+        const cone = this.flash.flashlightOverlay.querySelector("#flashlight-cone");
         cone.setAttribute("points", points.join(" "));
     }
 
