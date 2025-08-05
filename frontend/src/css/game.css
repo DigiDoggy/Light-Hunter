@@ -39,6 +39,14 @@ body {
     transform-origin: center;
     transition: transform 100ms linear;
     /*transition: transform 100ms linear;*/
+
+}
+
+.npc {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: blue;
 }
 
 .wall {

@@ -5,7 +5,7 @@ export default class GameObject {
         this.width = width;
         this.height = height;
         this.type = type;
-        this.solid = (type === "wall") // if type wall then we can run through it
+        this.solid = (type === "wall" || type === "npc");
 
         this.createElement(gameContainer ? gameContainer : document.getElementById("gameContainer"));
     }

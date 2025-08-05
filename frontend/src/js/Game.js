@@ -3,46 +3,24 @@ import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
 import Camera from "./Camera.js";
+import Flashlight from "./flashlight.js";
 
 export default class Game {
     constructor() {
         this.gameContainer = document.getElementById("gameContainer");
-        //todo need rewrite picture without border. Create little bit bigger
-        this.player = new Player(100, 100, 28, 43);
-        this.player.setSkin('skin1')
+        this.player = new Player(100, 100, 20, 20);
+        this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
         this.camera = new Camera(1.5);
-
-
+        this.flash = new Flashlight();
         this.gameObjects = [];
+        this.gameObjects.push(this.npc);
         this.gridSize = 100;
         this.spatialGrid = [];
         this.keys = {};
         this.lastTime = performance.now();
 
-        this.flashlightOverlay = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        this.flashlightOverlay.setAttribute("width", "100%");
-        this.flashlightOverlay.setAttribute("height", "100%");
-        this.flashlightOverlay.style.position = "absolute";
-        this.flashlightOverlay.style.top = "0";
-        this.flashlightOverlay.style.left = "0";
-        this.flashlightOverlay.style.pointerEvents = "none";
-        this.flashlightOverlay.style.zIndex = "100";
 
-        this.flashlightOverlay.innerHTML = `
-          <defs>
-          <filter id="blur-filter" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="15" />
-          </filter>
-
-  <mask id="flashlight-mask">
-    <rect width="100%" height="100%" fill="white"/>
-    <polygon opacity="80%" id="flashlight-cone" points="" fill="black" filter="url(#blur-filter)" />
-  </mask>
-</defs>
-<rect width="100%" height="100%" fill="black" mask="url(#flashlight-mask)" />
-        `;
-
-        this.gameContainer.appendChild(this.flashlightOverlay);
+        this.gameContainer.appendChild(this.flash.flashlightOverlay);
 
 
         this.init();
@@ -89,7 +67,7 @@ export default class Game {
             points.push(`${Math.round(r.x)},${Math.round(r.y)}`);
         }
 
-        const cone = this.flashlightOverlay.querySelector("#flashlight-cone");
+        const cone = this.flash.flashlightOverlay.querySelector("#flashlight-cone");
         cone.setAttribute("points", points.join(" "));
     }
 
@@ -100,9 +78,10 @@ export default class Game {
 
         let closest = {x: x + dx * maxLength, y: y + dy * maxLength};
         let closestDist = maxLength;
+        let closestType = null;
 
         for (const obj of this.gameObjects) {
-            if (obj.type !== "wall") continue;
+            if (obj.type !== "wall" && obj.type !== "npc") continue;
 
             const intersections = this.getRayBoxIntersections(x, y, dx, dy, obj);
 
@@ -111,8 +90,16 @@ export default class Game {
                 if (dist < closestDist) {
                     closest = point;
                     closestDist = dist;
+                    closestType = obj.type;
                 }
             }
+        }
+        const npcThreshold = 150; // adjust as needed
+
+        if (closestType === "npc" && closestDist <= npcThreshold) {
+            alert('npc caught');
+
+            console.log('npc caught');
         }
 
         return closest;
@@ -171,25 +158,15 @@ export default class Game {
     }
 
     setupEventListeners() {
-        document.addEventListener("keydown", (e) =>{
-            this.keys[e.code] = true;
-            this.player.setSkin('skin-move');
-        });
-
-        document.addEventListener("keyup", (e) => {
-            this.keys[e.code] = false;
-
-            if (!this.keys['KeyW'] && !this.keys['KeyA'] && !this.keys['KeyS'] && !this.keys['KeyD']) {
-                this.player.setSkin('skin1');
-            }
-        });
-
+        document.addEventListener("keydown", (e) => this.keys[e.code] = true);
+        document.addEventListener("keyup", (e) => this.keys[e.code] = false);
     }
 
 
     gameLoop(time) {
         this.delta = (time - this.lastTime) / 1000;
         this.lastTime = time;
+
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
         this.updateFlashlightCone();
