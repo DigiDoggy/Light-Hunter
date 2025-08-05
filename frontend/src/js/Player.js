@@ -2,34 +2,32 @@ import { checkCollision } from "./collision.js";
 import GameObject from "./GameObject.js";
 
 export default class Player extends GameObject {
-    constructor(x, y, width = 20, height = 20, name = "player", speed = 200, gameContainer) {
-
-        super(x, y, width, height, 'player' , gameContainer);
+    constructor(x, y, width = 20, height = 20, name = "player", speed = 200, gameContainer, facingAngle = 0) {
+        super(x, y, width, height, "player", gameContainer);
+        this.facingAngle = facingAngle;
         this.name = name;
         this.speed = speed;
-
-
     }
 
     #norm = Math.SQRT1_2;
 
     handleMovement(keys, delta, spatialGrid, gridSize) {
         let direction = {x: 0, y: 0};
-
-        if (keys['KeyW']) direction.y -= 1;
-        if (keys['KeyS']) direction.y += 1;
-        if (keys['KeyA']) direction.x -= 1;
-        if (keys['KeyD']) direction.x += 1;
-
-        // normalize diagonal movement
-        if (direction.x !== 0 && direction.y !== 0) {
-            direction.x *= this.#norm;
-            direction.y *= this.#norm;
-        }
-
-
+        const rotationSpeed = 2.5; // radians per second
+        const moveSpeed = this.speed;
         const deltaTime = delta || 0.01667;
-        const moveStepX = direction.x * this.speed * deltaTime;
+
+        let move = 0;
+        if (keys['KeyW']) move += 1;
+        if (keys['KeyS']) move -= 1;
+
+
+        if (keys['KeyA']) this.facingAngle -= rotationSpeed * deltaTime;
+        if (keys['KeyD']) this.facingAngle += rotationSpeed * deltaTime;
+
+        const moveStepX = Math.cos(this.facingAngle) * move * moveSpeed * deltaTime;
+        const moveStepY = Math.sin(this.facingAngle) * move * moveSpeed * deltaTime;
+
         const playerBoundsX = {
             x: this.x + moveStepX,
             y: this.y,
@@ -45,7 +43,6 @@ export default class Player extends GameObject {
             this.x += moveStepX;
         }
 
-        const moveStepY = direction.y * this.speed * deltaTime;
         const playerBoundsY = {
             x: this.x,
             y: this.y + moveStepY,

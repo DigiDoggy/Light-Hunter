@@ -1,30 +1,32 @@
 export function checkCollision(playerBounds, spatialGrid, gridSize) {
     const nearbyCells = getNearbyGridCells(playerBounds, gridSize);
     for (let cellKey of nearbyCells) {
-        const objectsInCell = spatialGrid[cellKey] || [];
-        for (let obj of objectsInCell) {
-            if (rectanglesOverlap(playerBounds, obj.bounds)) {
-                return obj;
-            }
+        const obj = spatialGrid[cellKey] || null;
+        if (!obj || !obj.solid) continue;
+        if (rectanglesOverlap(playerBounds, obj.bounds)) {
+            return obj;
         }
+
     }
     return null;
 }
 
+// In updateSpatialGrid.js
 export function updateSpatialGrid(gameObjects, gridSize) {
-    let spatialGrid = {};
-
-    for (let obj of gameObjects) {
-        const cells = getGridCellsForObject(obj.bounds, gridSize);
-        for (let cellKey of cells) {
-            if (!spatialGrid[cellKey]) {
-                spatialGrid[cellKey] = [];
+    const grid = {};
+    for (const obj of gameObjects) {
+        if (!obj.solid) continue;
+        const startX = Math.floor(obj.x / gridSize);
+        const endX = Math.floor((obj.x + obj.width - 1) / gridSize);
+        const startY = Math.floor(obj.y / gridSize);
+        const endY = Math.floor((obj.y + obj.height - 1) / gridSize);
+        for (let x = startX; x <= endX; x++) {
+            for (let y = startY; y <= endY; y++) {
+                grid[`${x},${y}`] = obj;
             }
-            spatialGrid[cellKey].push(obj);
         }
     }
-
-    return spatialGrid;
+    return grid;
 }
 
 function getGridCellsForObject(bounds, gridSize) {
