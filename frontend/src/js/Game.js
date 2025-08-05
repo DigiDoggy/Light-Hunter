@@ -8,8 +8,10 @@ export default class Game {
     constructor() {
         this.gameContainer = document.getElementById("gameContainer");
         //todo need rewrite picture without border. Create little bit bigger
-        this.player = new Player(100, 100, 60, 60);
+        this.player = new Player(100, 100, 28, 43);
+        this.player.setSkin('skin1')
         this.camera = new Camera(1.5);
+
 
         this.gameObjects = [];
         this.gridSize = 100;
@@ -36,8 +38,19 @@ export default class Game {
     }
 
     setupEventListeners() {
-        document.addEventListener("keydown", (e) => this.keys[e.code] = true);
-        document.addEventListener("keyup", (e) => this.keys[e.code] = false);
+        document.addEventListener("keydown", (e) =>{
+            this.keys[e.code] = true;
+            this.player.setSkin('skin-move');
+        });
+
+        document.addEventListener("keyup", (e) => {
+            this.keys[e.code] = false;
+
+            if (!this.keys['KeyW'] && !this.keys['KeyA'] && !this.keys['KeyS'] && !this.keys['KeyD']) {
+                this.player.setSkin('skin1');
+            }
+        });
+
     }
 
 
