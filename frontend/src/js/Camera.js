@@ -9,15 +9,14 @@ export default class Camera {
         const playerCenterX = x + width / 2;
         const playerCenterY = y + height / 2;
 
-        const viewSize = 20; // 200x200px area
-        this.zoomLevel = viewSize / Math.max(width, height);
-        console.log(this.zoomLevel);
+        const viewSize = 3000;
+        this.zoomLevel = viewSize / Math.max(2000, 2000);
 
         const screenW = window.innerWidth;
         const screenH = window.innerHeight;
 
-        const translateX = (screenW / 2) - (playerCenterX * this.zoomLevel);
-        const translateY = (screenH / 2) - (playerCenterY * this.zoomLevel);
+        const translateX = (screenW / 2) - (playerCenterX*this.zoomLevel - 500);
+        const translateY = (screenH / 2) - (playerCenterY * this.zoomLevel - 500);
 
         this.gameContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${this.zoomLevel})`;
     }
