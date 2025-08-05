@@ -9,9 +9,11 @@ export default class Game {
     constructor() {
         this.gameContainer = document.getElementById("gameContainer");
         this.player = new Player(100, 100, 20, 20);
+        this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
         this.camera = new Camera(1.5);
         this.flash = new Flashlight();
         this.gameObjects = [];
+        this.gameObjects.push(this.npc);
         this.gridSize = 100;
         this.spatialGrid = [];
         this.keys = {};
@@ -76,9 +78,10 @@ export default class Game {
 
         let closest = {x: x + dx * maxLength, y: y + dy * maxLength};
         let closestDist = maxLength;
+        let closestType = null;
 
         for (const obj of this.gameObjects) {
-            if (obj.type !== "wall") continue;
+            if (obj.type !== "wall" && obj.type !== "npc") continue;
 
             const intersections = this.getRayBoxIntersections(x, y, dx, dy, obj);
 
@@ -87,8 +90,16 @@ export default class Game {
                 if (dist < closestDist) {
                     closest = point;
                     closestDist = dist;
+                    closestType = obj.type;
                 }
             }
+        }
+        const npcThreshold = 150; // adjust as needed
+
+        if (closestType === "npc" && closestDist <= npcThreshold) {
+            alert('npc caught');
+
+            console.log('npc caught');
         }
 
         return closest;

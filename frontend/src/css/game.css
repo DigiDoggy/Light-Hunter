@@ -40,6 +40,13 @@ body {
     /*transition: transform 100ms linear;*/
 }
 
+.npc {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: blue;
+}
+
 .wall {
     position: absolute;
     background: cyan;
