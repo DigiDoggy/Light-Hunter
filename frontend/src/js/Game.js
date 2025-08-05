@@ -27,17 +27,16 @@ export default class Game {
 
         this.flashlightOverlay.innerHTML = `
           <defs>
-            <radialGradient id="flashlight-cone-gradient" r="100%">
-              <stop offset="0%" stop-color="white" stop-opacity="1" />
-              <stop offset="100%" stop-color="black" stop-opacity="1" />
-            </radialGradient>
+          <filter id="blur-filter" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="15" />
+          </filter>
 
-            <mask id="flashlight-mask">
-              <rect width="100%" height="100%" fill="white"/>
-              <polygon id="flashlight-cone" opacity="1" points="" fill="url(#flashlight-cone-gradient)"/>
-            </mask>
-          </defs>
-          <rect width="100%" height="100%" fill="black" style="opacity: 92%" mask="url(#flashlight-mask)"/>
+  <mask id="flashlight-mask">
+    <rect width="100%" height="100%" fill="white"/>
+    <polygon opacity="80%" id="flashlight-cone" points="" fill="black" filter="url(#blur-filter)" />
+  </mask>
+</defs>
+<rect width="100%" height="100%" fill="black" mask="url(#flashlight-mask)" />
         `;
 
         this.gameContainer.appendChild(this.flashlightOverlay);
