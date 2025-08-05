@@ -5,6 +5,7 @@ export default class GameObject {
         this.width = width;
         this.height = height;
         this.type = type;
+        this.solid = (type === "wall")
 
         this.createElement(gameContainer ? gameContainer : document.getElementById("gameContainer"));
     }
