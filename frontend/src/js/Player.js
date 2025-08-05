@@ -4,7 +4,7 @@ import GameObject from "./GameObject.js";
 export default class Player extends GameObject {
     constructor(x, y, width = 20, height = 20, name = "player", speed = 200, gameContainer, facingAngle = 0) {
         super(x, y, width, height, "player", gameContainer);
-        this.facingAngle = 0;
+        this.facingAngle = facingAngle;
         this.name = name;
         this.speed = speed;
     }
