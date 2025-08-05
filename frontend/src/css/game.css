@@ -34,10 +34,9 @@ body {
 
 .player {
     position: absolute;
-    width: 20px;
-    height: 20px;
-    background: red;
-    /*transition: transform 100ms linear;*/
+    background-image: url('../assets/skins/player1/skins.png');
+    background-size: 384px 384px;
+    image-rendering: pixelated;
 }
 
 .npc {
