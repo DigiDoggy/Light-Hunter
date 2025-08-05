@@ -15,7 +15,7 @@ export default class Flashlight {
               </filter>
 
           <mask id="flashlight-mask">
-            <rect width="100%" height="100%" fill="black"/>
+            <rect width="100%" height="100%" fill="white"/>
             <polygon opacity="80%" id="flashlight-cone" points="" fill="black" filter="url(#blur-filter)" />
           </mask>
         </defs>

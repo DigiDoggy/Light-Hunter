@@ -2,6 +2,7 @@ import {Map1} from "./map.js";
 import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
+import {getPlayers, getMyId, sendPlayerMove} from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./flashlight.js";
 
@@ -32,6 +33,7 @@ export default class Game {
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
         this.gameLoop();
     }
+
 
     updateFlashlightCone() {
         const playerCenterX = this.player.x + this.player.width / 2;
@@ -167,9 +169,42 @@ export default class Game {
         this.delta = (time - this.lastTime) / 1000;
         this.lastTime = time;
 
+        // Handle player movement and send updates to the server
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
+        sendPlayerMove(this.player.x, this.player.y);
+
+        // Update other players from the server
+        const players = getPlayers();
+        this.updateOtherPlayers(players);
+
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
         this.updateFlashlightCone();
         requestAnimationFrame((time) => this.gameLoop(time));
+    }
+
+    updateOtherPlayers(players) {
+        for (const id in players) {
+            if (id === getMyId()) continue;
+            const playerData = players[id];
+
+            let otherPlayer = this.gameObjects.find(obj => obj.id === id);
+            if (!otherPlayer) {
+                otherPlayer = new GameObject(playerData.x, playerData.y, 20, 20, "player", this.gameContainer);
+                otherPlayer.id = id;
+                this.gameObjects.push(otherPlayer);
+            } else {
+                otherPlayer.x = playerData.x;
+                otherPlayer.y = playerData.y;
+                otherPlayer.updatePosition();
+            }
+        }
+
+        this.gameObjects = this.gameObjects.filter(obj => {
+            if (obj.type === "player" && !players[obj.id]) {
+                obj.remove();
+                return false;
+            }
+            return true;
+        });
     }
 }
