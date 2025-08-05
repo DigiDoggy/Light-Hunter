@@ -4,12 +4,20 @@ export default class Camera {
         this.gameContainer = gameContainer ? gameContainer : document.getElementById("gameContainer");
     }
 
-    updateCamera(x, y, width, height) {
-        const centerX = x + (width / 2);
-        const centerY = y + (height / 2);
 
-        const translateX = (window.innerWidth / 2) - (centerX * this.zoomLevel);
-        const translateY = (window.innerHeight / 1.5) - (centerY * this.zoomLevel);
+    updateCamera(x, y, width, height) {
+        const playerCenterX = x + width / 2;
+        const playerCenterY = y + height / 2;
+
+        const viewSize = 20; // 200x200px area
+        this.zoomLevel = viewSize / Math.max(width, height);
+        console.log(this.zoomLevel);
+
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+
+        const translateX = (screenW / 2) - (playerCenterX * this.zoomLevel);
+        const translateY = (screenH / 2) - (playerCenterY * this.zoomLevel);
 
         this.gameContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${this.zoomLevel})`;
     }

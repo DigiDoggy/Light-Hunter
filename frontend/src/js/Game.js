@@ -10,7 +10,7 @@ export default class Game {
         this.gameContainer = document.getElementById("gameContainer");
         this.player = new Player(100, 100, 20, 20);
         this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
-        this.camera = new Camera(1.5);
+        this.camera = new Camera(0.1);
         this.flash = new Flashlight();
         this.gameObjects = [];
         this.gameObjects.push(this.npc);
