@@ -9,7 +9,7 @@ export default class Game {
     constructor() {
         this.gameContainer = document.getElementById("gameContainer");
         this.player = new Player(100, 100, 32, 48);
-        this.player.setCharacterIndex(1)
+        this.player.setCharacterIndex(5)
         this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
         this.camera = new Camera(1.5);
         this.flash = new Flashlight();
