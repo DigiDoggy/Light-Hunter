@@ -3,13 +3,16 @@ import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
 import Camera from "./Camera.js";
-import Flashlight from "./flashlight.js";
+import Flashlight from "./Flashlight.js";
+import "../css/game.css"
 
 export default class Game {
-    constructor() {
-        this.gameContainer = document.getElementById("gameContainer");
+    constructor(stateManager, rootContainer) {
+        this.stateManager = stateManager;
+        this.rootContainer = rootContainer;
+        this.gameContainer = this.stateManager.setupContainer("gameContainer", "game-container");
         this.player = new Player(100, 100, 32, 48);
-        this.player.setCharacterIndex(5)
+        this.player.setCharacterIndex(this.stateManager.skinIndex)
         this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
         this.camera = new Camera(1.5);
         this.flash = new Flashlight();
@@ -23,8 +26,6 @@ export default class Game {
 
         this.gameContainer.appendChild(this.flash.flashlightOverlay);
 
-
-        this.init();
     }
 
     init() {

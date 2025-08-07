@@ -1,0 +1,47 @@
+#mainMenuContainer {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle,rgba(207, 207, 207, 1) 15%, rgba(110, 110, 110, 1) 46%, rgba(74, 25, 25, 1) 100%);
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+
+    h1 {
+        color: dimgray;
+    }
+
+    button {
+        width: 500px;
+        margin-top: 10px;
+    }
+
+    button:hover {
+        cursor: pointer;
+        background-color: lightgray;
+    }
+}
+
+.menu-frame {
+    display: flex;
+    flex-direction: column;
+    background-color: darkgray ;
+    padding: 30px;
+    border-radius: 25px;
+    border: 3px solid black;
+}
+
+.menu-frame.hidden {
+    display: none;
+}
+
+.menu-item {
+    text-align: center;
+    font-size: 30px;
+    border: 2px solid black;
+    border-radius: 25px;
+}
+
+

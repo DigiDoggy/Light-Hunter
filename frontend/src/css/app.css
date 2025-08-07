@@ -1,0 +1,31 @@
+* {
+    font-family: inherit;
+}
+
+body {
+    overflow: hidden;
+    font-size: 16px;
+    font-family: "Consolas", monospace;
+}
+
+#app {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    color: black;
+}
+
+.error {
+    color: red;
+}
+
+.hidden {
+    display: none;
+}
+
+.corner-top-left    { top: 0; left: 0; }
+.corner-top-right   { top: 0; right: 0; }
+.corner-bottom-left { bottom: 0; left: 0; }
+.corner-bottom-right{ bottom: 0; right: 0; }
