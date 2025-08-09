@@ -15,6 +15,7 @@ body {
     height: 100%;
     position: absolute;
     color: black;
+    background-color: black;
 }
 
 .error {

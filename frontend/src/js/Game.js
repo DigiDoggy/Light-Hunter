@@ -2,6 +2,7 @@ import {Map1} from "./map.js";
 import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
+import {getPlayers, getMyId, sendPlayerMove} from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./Flashlight.js";
 import "../css/game.css"
@@ -14,7 +15,7 @@ export default class Game {
         this.player = new Player(100, 100, 32, 48);
         this.player.setCharacterIndex(this.stateManager.skinIndex)
         this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
-        this.camera = new Camera(1.5);
+        this.camera = new Camera(0.1);
         this.flash = new Flashlight();
         this.gameObjects = [];
         this.gameObjects.push(this.npc);
@@ -35,43 +36,7 @@ export default class Game {
         this.gameLoop();
     }
 
-    updateFlashlightCone() {
-        const playerCenterX = this.player.x + this.player.width / 2;
-        const playerCenterY = this.player.y + this.player.height / 2;
-        const coneLength = 220;
-        const coneAngle = Math.PI / 1.2;
-        const direction = this.player.facingAngle || 0;
-        const rayCount = 60;
 
-        const rays = [];
-
-        for (let i = 0; i <= rayCount; i++) {
-            const angle = direction - coneAngle / 2 + (coneAngle * i) / rayCount;
-            const end = this.castRay(
-                playerCenterX,
-                playerCenterY,
-                angle,
-                coneLength
-            );
-            rays.push({
-                x: end.x,
-                y: end.y,
-                angle: angle
-            });
-        }
-
-        // Sort the rays by angle — helps prevent jitter
-        rays.sort((a, b) => a.angle - b.angle);
-
-        // Construct point list
-        const points = [`${playerCenterX},${playerCenterY}`];
-        for (const r of rays) {
-            points.push(`${Math.round(r.x)},${Math.round(r.y)}`);
-        }
-
-        const cone = this.flash.flashlightOverlay.querySelector("#flashlight-cone");
-        cone.setAttribute("points", points.join(" "));
-    }
 
 
     castRay(x, y, angle, maxLength) {
@@ -169,9 +134,79 @@ export default class Game {
         this.delta = (time - this.lastTime) / 1000;
         this.lastTime = time;
 
+        // Handle player movement and send updates to the server
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
+        sendPlayerMove(this.player.x, this.player.y);
+
+        // Update other players from the server
+        const players = getPlayers();
+        this.updateOtherPlayers(players);
+
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
         this.updateFlashlightCone();
         requestAnimationFrame((time) => this.gameLoop(time));
+    }
+
+    updateFlashlightCone() {
+        this.flash.clearCones();
+
+        const addConeForPlayer = (centerX, centerY, direction) => {
+            const coneLength = 220;
+            const coneAngle = Math.PI / 1.2;
+            const rayCount = 60;
+            const rays = [];
+            for (let i = 0; i <= rayCount; i++) {
+                const angle = direction - coneAngle / 2 + (coneAngle * i) / rayCount;
+                const end = this.castRay(centerX, centerY, angle, coneLength);
+                rays.push({ x: end.x, y: end.y, angle: angle });
+            }
+            rays.sort((a, b) => a.angle - b.angle);
+            const points = [`${centerX},${centerY}`];
+            for (const r of rays) {
+                points.push(`${Math.round(r.x)},${Math.round(r.y)}`);
+            }
+            this.flash.addCone(points.join(" "));
+        };
+
+        const playerCenterX = this.player.x + this.player.width / 2;
+        const playerCenterY = this.player.y + this.player.height / 2;
+        addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0);
+
+        const players = getPlayers();
+        for (const id in players) {
+            if (id === getMyId()) continue;
+            const p = players[id];
+            const centerX = p.x + 10;
+            const centerY = p.y + 10;
+            addConeForPlayer(centerX, centerY, p.facingAngle || 0);
+        }
+    }
+
+
+    updateOtherPlayers(players) {
+        for (const id in players) {
+            if (id === getMyId()) continue;
+            const playerData = players[id];
+
+            let otherPlayer = this.gameObjects.find(obj => obj.id === id);
+            if (!otherPlayer) {
+                otherPlayer = new GameObject(playerData.x, playerData.y, 20, 20, "player", this.gameContainer);
+                otherPlayer.id = id;
+                this.gameObjects.push(otherPlayer);
+            } else {
+                otherPlayer.x = playerData.x;
+                otherPlayer.y = playerData.y;
+                otherPlayer.facingAngle = playerData.facingAngle || 0;
+                otherPlayer.updatePosition();
+            }
+        }
+
+        this.gameObjects = this.gameObjects.filter(obj => {
+            if (obj.type === "player" && !players[obj.id]) {
+                obj.remove();
+                return false;
+            }
+            return true;
+        });
     }
 }
