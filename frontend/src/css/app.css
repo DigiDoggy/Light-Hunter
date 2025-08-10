@@ -26,7 +26,19 @@ body {
     display: none;
 }
 
-.corner-top-left    { top: 0; left: 0; }
-.corner-top-right   { top: 0; right: 0; }
-.corner-bottom-left { bottom: 0; left: 0; }
-.corner-bottom-right{ bottom: 0; right: 0; }
+.darkness-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 5;
+}
+
+.darkness-overlay.hidden {
+    display: none;
+}

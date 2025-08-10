@@ -1,4 +1,6 @@
+import {updateSkin, testEmit, getPlayers, updateReadyStatus} from "./multiplayer.js";
 import "../css/lobby.css";
+import State from "./State.js";
 
 const ANIMATION_DIRECTIONS = {
     FRONT: 0,
@@ -7,36 +9,34 @@ const ANIMATION_DIRECTIONS = {
     BACK: 3
 }
 
-export default class Lobby {
-    constructor(stateManager, rootContainer) {
-        this.stateManager = stateManager;
-        this.rootContainer = rootContainer;
-        this.container = null;
-        this.isHost = stateManager.isHost;
+export default class Lobby extends State {
+    constructor(stateManager, rootContainer, socket) {
+        super(stateManager, rootContainer, socket);
+        this.playerList = null;
         this.error = "";
     }
 
     init() {
-        // todo: connect to lobby
-
-        this.container = this.stateManager.setupContainer("lobbyContainer");
-        this.pickRandomUnusedSkin();
-        this.renderUsernameInput();
-        // this.renderLobby();
+        this.setupContainer("lobbyContainer");
+        this.registerSocketHandlers();
+        getPlayers();
+        this.render();
     }
 
-    pickRandomUnusedSkin() {
-        const skins = [0, 1, 2, 3, 4, 5, 6, 7];
-        let takenSkins = [];
-        this.stateManager.lobby.players.forEach((player) => {
-            takenSkins.push(player.skinIndex);
-        })
-        const availableSkins = skins.filter(index => !takenSkins.includes(index));
+    registerSocketHandlers() {
+        this.onSocket("getPlayers", (players) => {
+            console.log("players", players);
+            this.stateManager.players = players;
+            this.updatePlayerList(this.playerList);
+        });
 
-        this.stateManager.skinIndex = (availableSkins[Math.floor(Math.random() * availableSkins.length)]);
+        this.onSocket("startGame", () => {
+            console.log("startGame");
+            this.stateManager.switchState("game")
+        });
     }
 
-    renderLobby() {
+    render() {
         const frame = document.createElement("div")
         frame.className = "menu-frame lobby";
 
@@ -45,8 +45,29 @@ export default class Lobby {
         this.renderMapSection(frame);
         this.renderReadyButton(frame);
 
-        this.container.innerHTML = "";
         this.container.appendChild(frame);
+    }
+
+    updatePlayerList(playerList) {
+        playerList.innerHTML = "";
+        for (const [id, player] of Object.entries(this.stateManager.players)) {
+            const playerEl = document.createElement("div");
+            playerEl.classList.add("player-list-item");
+
+            const skin = document.createElement("img");
+            skin.className = "skin";
+            this.prepareSkin(skin, 1, player.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
+
+            const playerName = document.createElement("p");
+            playerName.textContent = player.isHost ? "🔌" + player.username : player.username + (player.readyStatus === true ? "🟢" : "🔴");
+
+            if (player.username === this.stateManager.username) {
+                playerName.style.color = "green";
+            }
+
+            playerEl.append(skin, playerName);
+            playerList.append(playerEl);
+        }
     }
 
     renderMapSection(container) {
@@ -62,7 +83,7 @@ export default class Lobby {
         const dropdown = document.createElement("select");
         dropdown.className = "map-list menu-item";
 
-        dropdown.addEventListener("change", (e) => {
+        this.addEventListener(dropdown,"change", (e) => {
             const selectedValue = e.target.value;
             console.log(selectedValue);
         })
@@ -90,13 +111,12 @@ export default class Lobby {
         readyButton.className = "ready-button menu-item";
         readyButton.textContent = "Ready";
 
-        readyButton.addEventListener("click", () => {
-            // todo emit ready
-
+        this.addEventListener(readyButton, "click", () => {
+            updateReadyStatus(!this.stateManager.readyStatus)
             readyButton.classList.toggle("ready")
 
             // dev
-            this.stateManager.switchState("game");
+            // this.stateManager.switchState("game");
         })
 
         readyContainer.appendChild(readyButton);
@@ -111,25 +131,8 @@ export default class Lobby {
         title.textContent = "Player list"
         playerListContainer.append(title)
 
-        this.stateManager.lobby.players.forEach((player) => {
-            const playerEl = document.createElement("div");
-            playerEl.classList.add("player-list-item");
-
-            const skin = document.createElement("img");
-            skin.className = "skin";
-            this.prepareSkin(skin, 1, player.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
-
-            const playerName = document.createElement("p");
-            playerName.textContent = player.isHost ? "🔌" + player.username : player.username;
-
-            if (player.username === this.stateManager.username) {
-                playerName.style.color = "green";
-            }
-
-            playerEl.append(skin, playerName);
-            playerListContainer.append(playerEl);
-        })
-
+        this.playerList = document.createElement("div");
+        playerListContainer.append(this.playerList);
         container.appendChild(playerListContainer);
     }
 
@@ -143,9 +146,9 @@ export default class Lobby {
         skinSelectorButton.className = "skin-selector-button menu-item"
         this.prepareSkin(skinSelectorButton, 3,this.stateManager.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
 
-        skinSelectorButton.addEventListener("click", () => {
+        this.addEventListener(skinSelectorButton, "click", () => {
             this.renderSkinSelector(skinContainer, skinSelectorButton);
-        })
+        });
 
         skinContainer.append(skinSelectorTitle, skinSelectorButton);
         container.append(skinContainer);
@@ -168,6 +171,11 @@ export default class Lobby {
         frame.id = "skin-selector";
         frame.className = "skin-selector menu-frame";
 
+        this.addEventListener(darknessOverlay, "click", () => {
+            frame.classList.toggle("hidden");
+            darknessOverlay.classList.toggle("hidden");
+        })
+
         const title = document.createElement("p")
         title.textContent = "Pick a skin";
         frame.appendChild(title);
@@ -179,20 +187,19 @@ export default class Lobby {
             const skin = document.createElement("img");
             skin.className = "skin-selector-button select-skin menu-item";
             this.prepareSkin(skin, 3, i, ANIMATION_DIRECTIONS.FRONT, 1);
-            skin.addEventListener("click", () => {
+            this.addEventListener(skin, "click", () => {
                 this.stateManager.skinIndex = i;
                 this.prepareSkin(menuButton, 3, i, ANIMATION_DIRECTIONS.FRONT, 1);
                 frame.classList.add("hidden");
                 darknessOverlay.classList.add("hidden");
 
-                // todo emit update
+                updateSkin(i);
             })
             skins.append(skin);
         }
 
         frame.appendChild(skins);
         container.append(frame);
-
     }
 
     prepareSkin(element, scale = 3,skinIndex, direction, animation) {
@@ -216,59 +223,4 @@ export default class Lobby {
         element.style.backgroundSize = `${mapWidth}px ${mapHeight}px`
         element.style.backgroundPosition = `${x}px ${y}px`;
     }
-
-    renderUsernameInput() {
-        const frame = document.createElement("div");
-        frame.classList.add("menu-frame");
-
-        const errorMessage = document.createElement("p")
-        errorMessage.className = "error";
-        this.error = errorMessage;
-
-        const form = document.createElement("form");
-        form.id = "usernameForm";
-
-        const input = document.createElement("input");
-        input.id = "usernameInput";
-        input.classList.add("menu-item");
-        input.type = "text";
-        input.placeholder = "Username";
-        input.autofocus = true;
-
-        const button = document.createElement("button");
-        button.id = "save";
-        button.classList.add("menu-item");
-        button.type = "submit";
-        button.textContent = this.isHost ? "Save" : "Join game";
-
-        form.addEventListener("submit", (e) => {
-            e.preventDefault();
-            this.handleUsername(input.value);
-        })
-        form.append(input, button);
-        frame.append(errorMessage, form);
-
-        this.container.innerHTML = "";
-        this.container.appendChild(frame);
-    }
-
-    handleUsername(username) {
-        username.trim();
-        if (username.length < 3) {
-            this.error.textContent = "Username is too short";
-            return false;
-        }
-        if (username.length > 12) {
-            this.error.textContent = "Username is too long";
-            return false;
-        }
-
-        this.stateManager.username = username;
-        this.renderLobby();
-    }
-
-    cleanup() {
-        this.rootContainer.innerHTML = "";
-    }
-
 }

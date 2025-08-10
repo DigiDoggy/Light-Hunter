@@ -1,5 +1,5 @@
 #mainMenuContainer {
-    position: absolute;
+    position: relative;
     width: 100%;
     height: 100%;
     background: radial-gradient(circle,rgba(207, 207, 207, 1) 15%, rgba(110, 110, 110, 1) 46%, rgba(74, 25, 25, 1) 100%);
@@ -21,6 +21,20 @@
     button:hover {
         cursor: pointer;
         background-color: lightgray;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .game-entry-dialog {
+        position: absolute;
+        z-index: 100;
+    }
+
+    input {
+        margin-top: 2px;
     }
 }
 

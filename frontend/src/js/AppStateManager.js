@@ -1,6 +1,7 @@
 import Game from './Game';
 import MainMenu from './MainMenu';
 import Lobby from './Lobby';
+import { socket } from "./multiplayer.js"
 
 export default class AppStateManager {
     constructor() {
@@ -10,55 +11,52 @@ export default class AppStateManager {
             game: Game,
             lobby: Lobby,
         }
+
         this.container = document.getElementById("app");
 
         this.isHost = false;
-        this.username = "me";
+        this.username = null;
         this.skinIndex = null;
-        this.lobby = {
-            players: [
-                { username: "host", skinIndex: 0, isHost: true },
-                { username: "player2", skinIndex: 2, isHost: false},
-                { username: "player3", skinIndex: 5, },
-                { username: "me", skinIndex: 3, },
-            ],
-            code: window.location.pathname
-        };
+        this.readyStatus = false;
+        this.players = [];
+
+        this.gameId = null;
 
         this.settings = {};
+
+        this.test = false;
+        this.socket = socket;
 
         this.init();
     }
 
     init() {
-        if (this.lobby.code === "/") {
-            this.switchState("mainMenu");
-        } else {
-            this.switchState("lobby");
-        }
+        this.setGameId(window.location.pathname);
+        this.switchState("mainMenu");
+        // this.switchState("lobby");
         // this.switchState("game")
     }
 
+    setGameId(gameId) {
+        if (gameId[0] === "/") this.gameId = gameId.substring(1);
+        else this.gameId = gameId;
+    }
+
     switchState(state) {
-        if (this.currentState !== null && this.currentState.cleanup()) {
+        if (this.currentState) {
             this.currentState.cleanup();
+            this.currentState = null;
         }
+
+        this.container.innerHTML = "";
 
         const StateClass = this.states[state];
         if (StateClass) {
-            this.currentState = new StateClass(this, this.container);
+            this.currentState = new StateClass(this, this.container, socket);
             this.currentState.init();
         } else {
             console.error(`State ${state} not found`);
         }
 
-    }
-
-    setupContainer(containerName, classes) {
-        const container = document.createElement("div");
-        container.id = containerName;
-        container.className = classes;
-        this.container.appendChild(container);
-        return container;
     }
 }

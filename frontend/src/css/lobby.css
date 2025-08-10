@@ -9,11 +9,6 @@
     align-items: center;
     justify-content: center;
 
-    form {
-        display: flex;
-        flex-direction: column;
-    }
-
     button {
         margin-top: 10px;
     }
@@ -44,23 +39,6 @@
     background-repeat: no-repeat;
     border: 2px solid black;
     background-color: white;
-}
-
-.darkness-overlay {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 5;
-}
-
-.darkness-overlay.hidden {
-    display: none;
 }
 
 .skin-container {

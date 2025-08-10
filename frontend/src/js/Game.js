@@ -6,15 +6,15 @@ import {getPlayers, getMyId, sendPlayerMove} from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./Flashlight.js";
 import "../css/game.css"
+import State from "./State.js";
 
-export default class Game {
-    constructor(stateManager, rootContainer) {
-        this.stateManager = stateManager;
-        this.rootContainer = rootContainer;
-        this.gameContainer = this.stateManager.setupContainer("gameContainer", "game-container");
+export default class Game extends State {
+    constructor(stateManager, rootContainer, socket) {
+        super(stateManager, rootContainer, socket);
+        this.setupContainer("gameContainer", "game-container");
         this.player = new Player(100, 100, 32, 48);
         this.player.setCharacterIndex(this.stateManager.skinIndex)
-        this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
+        this.npc = new GameObject(300, 300, 20, 20, "npc", this.container);
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
         this.gameObjects = [];
@@ -25,7 +25,7 @@ export default class Game {
         this.lastTime = performance.now();
 
 
-        this.gameContainer.appendChild(this.flash.flashlightOverlay);
+        this.container.appendChild(this.flash.flashlightOverlay);
 
     }
 
@@ -118,7 +118,7 @@ export default class Game {
 
     createMap() {
         Map1.walls.forEach((wall) => {
-            this.gameObjects.push(new GameObject(wall.x, wall.y, wall.width, wall.height, "wall", this.gameContainer));
+            this.gameObjects.push(new GameObject(wall.x, wall.y, wall.width, wall.height, "wall", this.container));
         })
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
 
@@ -127,6 +127,12 @@ export default class Game {
     setupEventListeners() {
         document.addEventListener("keydown", (e) => this.keys[e.code] = true);
         document.addEventListener("keyup", (e) => this.keys[e.code] = false);
+
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Escape") {
+                this.stateManager.switchState("lobby")
+            }
+        })
     }
 
 
@@ -190,7 +196,7 @@ export default class Game {
 
             let otherPlayer = this.gameObjects.find(obj => obj.id === id);
             if (!otherPlayer) {
-                otherPlayer = new GameObject(playerData.x, playerData.y, 20, 20, "player", this.gameContainer);
+                otherPlayer = new GameObject(playerData.x, playerData.y, 20, 20, "player", this.container);
                 otherPlayer.id = id;
                 this.gameObjects.push(otherPlayer);
             } else {
@@ -208,5 +214,9 @@ export default class Game {
             }
             return true;
         });
+    }
+
+    cleanup() {
+        this.rootContainer.innerHTML = "";
     }
 }

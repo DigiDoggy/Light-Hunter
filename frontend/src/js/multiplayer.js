@@ -3,7 +3,7 @@
 
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:8080');
+export const socket = io('http://localhost:8080');
 
 let players = {};
 
@@ -36,10 +36,43 @@ export function sendPlayerMove(x, y) {
     socket.emit('move', { x, y });
 }
 
-export function getPlayers() {
-    return players;
-}
+// export function getPlayers() {
+//     return players;
+// }
 
 export function getMyId() {
     return socket.id;
+}
+
+socket.on("error", (err) => {
+    console.log(err);
+})
+
+export function hostGame(username) {
+    socket.emit("hostGame", { username: username });
+}
+
+export function getPlayers() {
+    socket.emit("getPlayers");
+}
+
+// socket.on("getPlayers", (players) => {
+//
+// })
+
+export function updateReadyStatus(status) {
+    socket.emit("updateReadyStatus", status);
+}
+
+export function testEmit() {
+    console.log("emit")
+    socket.emit("test");
+}
+
+export function updateSkin(skinIndex) {
+    socket.emit("updateSkin", skinIndex);
+}
+
+export function joinGame(gameId, username) {
+    socket.emit("joinGame", { gameId: gameId, username: username });
 }
