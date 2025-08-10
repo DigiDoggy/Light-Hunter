@@ -109,8 +109,11 @@ export default class Player extends GameObject {
         };
 
         const row = directionMap[direction];
-        const x = this.characterIndex * 3 * frameWidth + frame * frameWidth;
-        const y = row * frameHeight;
+        const skinRowOffset = this.characterIndex > 3 ? 4 : 0;
+
+        const x = (this.characterIndex * 3 + frame) * frameWidth;
+        const y = (row + skinRowOffset) * frameHeight;
+
 
         this.element.style.backgroundPosition = `-${x}px -${y}px`;
         this.element.style.width = `${frameWidth}px`;

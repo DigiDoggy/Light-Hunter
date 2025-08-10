@@ -51,6 +51,6 @@ body {
 .wall {
     position: absolute;
     /*background: cyan;*/
-    outline: 2px solid green;
+    /*border: 2px solid green;*/
     box-sizing: border-box;
 }
