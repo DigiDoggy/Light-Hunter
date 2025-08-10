@@ -135,9 +135,11 @@ export default class Game {
         this.delta = (time - this.lastTime) / 1000;
         this.lastTime = time;
 
+        // Handle player movement and send updates to the server
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle);
+        sendPlayerMove(this.player.x, this.player.y);
 
+        // Update other players from the server
         const players = getPlayers();
         this.updateOtherPlayers(players);
 
@@ -170,15 +172,13 @@ export default class Game {
         const playerCenterX = this.player.x + this.player.width / 2;
         const playerCenterY = this.player.y + this.player.height / 2;
         addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0);
-        console.log(this.player.width);
+
         const players = getPlayers();
-        console.log(players);
         for (const id in players) {
             if (id === getMyId()) continue;
             const p = players[id];
-            const centerX = p.x + 16;
-            const centerY = p.y + 16;
-            console.log(id);
+            const centerX = p.x + 10;
+            const centerY = p.y + 10;
             addConeForPlayer(centerX, centerY, p.facingAngle || 0);
         }
     }
@@ -204,6 +204,7 @@ export default class Game {
 
         this.gameObjects = this.gameObjects.filter(obj => {
             if (obj.type === "player" && !players[obj.id]) {
+                obj.remove();
                 return false;
             }
             return true;

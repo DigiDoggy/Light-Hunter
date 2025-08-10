@@ -24,7 +24,7 @@ app.get('/api/hello', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    players[socket.id] = { x: 100, y: 100, facingAngle: 0,};
+    players[socket.id] = { x: 100, y: 100 };
     socket.emit('currentPlayers', players);
     socket.broadcast.emit('newPlayer', { id: socket.id, ...players[socket.id] });
 

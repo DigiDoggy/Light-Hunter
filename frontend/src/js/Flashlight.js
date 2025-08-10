@@ -22,19 +22,15 @@ export default class Flashlight {
     }
 
     clearCones() {
-        console.log('removed');
-
         this.mask.querySelectorAll("polygon").forEach(p => p.remove());
     }
 
     addCone(points) {
-        console.log('added');
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         polygon.setAttribute("points", points);
         polygon.setAttribute("opacity", "0.8");
         polygon.setAttribute("fill", "black");
         polygon.setAttribute("filter", "url(#blur-filter)");
         this.mask.appendChild(polygon);
-
     }
 }
