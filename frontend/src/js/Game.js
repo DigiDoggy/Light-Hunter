@@ -142,7 +142,7 @@ export default class Game extends State {
 
         // Handle player movement and send updates to the server
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-        sendPlayerMove(this.player.x, this.player.y);
+        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle);
 
         // Update other players from the server
         const players = getPlayers();
