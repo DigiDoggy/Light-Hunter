@@ -40,7 +40,7 @@ body {
     image-rendering: pixelated;
 }
 
-.hider {
+.npc {
     position: absolute;
     width: 20px;
     height: 20px;
