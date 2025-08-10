@@ -1,8 +1,8 @@
 export const Map1 = {
     walls: [
         // border
-        {x: 0, y: 0, width: 2000, height: 20},
-        {x: 0, y: 1980, width: 2000, height: 20},
+        {x: 0, y: 0, width: 2000, height: 42},
+        {x: 0, y: 1980, width: 2000, height: 40},
         {x: 0, y: 0, width: 20, height: 2000},
         {x: 1980, y: 0, width: 20, height: 2000},
 
