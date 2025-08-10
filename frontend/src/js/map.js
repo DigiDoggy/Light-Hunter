@@ -1,68 +1,54 @@
 export const Map1 = {
     walls: [
         // border
-        {x: 0, y: 0, width: 2000, height: 42},
-        {x: 0, y: 1980, width: 2000, height: 40},
-        {x: 0, y: 0, width: 20, height: 2000},
-        {x: 1980, y: 0, width: 20, height: 2000},
+        {x: 0, y: 0, width: 2000, height: 84},
+        {x: 0, y: 0, width: 32, height: 2000},
+        {x: 0, y: 1960, width: 2000, height: 40},
+        {x: 1960, y: 0, width: 40, height: 2000},
+        {x: 151, y: 199, width: 220, height: 73},
+        {x: 151, y: 274, width: 32, height: 301},
+        {x: 480, y: 200, width: 31, height: 166},
+        {x: 290, y: 366, width: 223, height: 72},
+        {x: 151, y: 1187, width: 262, height: 77},
+        {x: 151, y: 703, width: 35, height: 280},
+        {x: 151, y: 983, width: 263, height: 77},
+        {x: 151, y: 1358, width: 34, height: 268},
+        {x: 151, y: 1627, width: 630, height: 74},
+        {x: 754, y: 1702, width: 30, height: 121},
+        {x: 754, y: 1822, width: 500, height: 75},
+        {x: 1225, y: 1701, width: 27, height: 125},
+        {x: 1225, y: 1626, width: 628, height: 74},
+        {x: 1817, y: 1360, width: 33, height: 268},
 
-        {x: 200, y: 150, width: 100, height: 20},
-        {x: 400, y: 250, width: 20, height: 150},
-        {x: 600, y: 100, width: 80, height: 80},
-        {x: 150, y: 400, width: 120, height: 20},
-        {x: 500, y: 450, width: 20, height: 100},
+        {x: 793, y: 380, width: 33, height: 162},
+        {x: 478, y: 540, width: 346, height: 74},
+        {x: 480, y: 611, width: 34, height: 173},
+        {x: 673, y: 710, width: 224, height: 74},
+        {x: 520, y: 879, width: 250, height: 75},
+        {x: 597, y: 1066, width: 32, height: 295},
+        {x: 372, y: 1360, width: 258, height: 78},
+        {x: 650, y: 199, width: 459, height: 77},
 
-        {x: 900, y: 150, width: 20, height: 40},
-        {x: 1000, y: 150, width: 20, height: 40},
-        {x: 880, y: 230, width: 20, height: 40},
-        {x: 1020, y: 230, width: 20, height: 40},
-        {x: 900, y: 270, width: 120, height: 20},
+        {x: 919, y: 379, width: 336, height: 74},
+        {x: 1224, y: 275, width: 26, height: 104},
+        {x: 1222, y: 199, width: 194, height: 71},
 
-        // new obstacles
-        {x: 300, y: 700, width: 100, height: 100},      // house 1
-        {x: 450, y: 900, width: 120, height: 20},       // fence
-        {x: 800, y: 600, width: 60, height: 120},       // tall block
-        {x: 1200, y: 300, width: 100, height: 100},     // house 2
-        {x: 1300, y: 500, width: 20, height: 120},      // pole
-        {x: 1600, y: 400, width: 80, height: 80},       // house 3
-        {x: 1700, y: 700, width: 100, height: 20},      // wall
-        {x: 1800, y: 900, width: 20, height: 100},      // pillar
-        {x: 300, y: 1200, width: 100, height: 60},      // shed
-        {x: 600, y: 1300, width: 80, height: 80},       // house 4
-        {x: 900, y: 1100, width: 120, height: 20},      // fence
-        {x: 1100, y: 1400, width: 20, height: 120},     // pole
-        {x: 1400, y: 1200, width: 100, height: 100},    // house 5
-        {x: 1600, y: 1500, width: 80, height: 80},      // house 6
-        {x: 1750, y: 1700, width: 100, height: 20},     // wall
-        {x: 1800, y: 1800, width: 20, height: 100},     // pillar
-        {x: 400, y: 1700, width: 100, height: 60},      // shed
-        {x: 700, y: 1600, width: 80, height: 80},       // house 7
-        {x: 1000, y: 1700, width: 120, height: 20},     // fence
-        {x: 1200, y: 1800, width: 20, height: 120},     // pole
-        {x: 1500, y: 1700, width: 100, height: 100},    // house 8
-        {x: 1700, y: 1200, width: 80, height: 80},      // house 9
-        {x: 1850, y: 300, width: 60, height: 120},
-        // Add these to the walls array
-        {x: 200, y: 1800, width: 80, height: 80},        // house 10
-        {x: 350, y: 1550, width: 20, height: 100},       // pillar
-        {x: 550, y: 1700, width: 100, height: 20},       // wall
-        {x: 800, y: 1450, width: 60, height: 120},       // tall block
-        {x: 950, y: 1300, width: 100, height: 100},      // house 11
-        {x: 1150, y: 1600, width: 120, height: 20},      // fence
-        {x: 1350, y: 1800, width: 20, height: 120},      // pole
-        {x: 1550, y: 1300, width: 80, height: 80},       // house 12
-        {x: 1750, y: 1100, width: 100, height: 60},      // shed
-        {x: 1900, y: 1500, width: 20, height: 100},      // pillar
-        {x: 1700, y: 300, width: 100, height: 20},       // wall
-        {x: 1500, y: 600, width: 80, height: 80},        // house 13
-        {x: 1300, y: 800, width: 20, height: 120},       // pole
-        {x: 1100, y: 1000, width: 100, height: 100},     // house 14
-        {x: 900, y: 800, width: 120, height: 20},        // fence
-        {x: 700, y: 1000, width: 20, height: 120},       // pole
-        {x: 500, y: 1200, width: 80, height: 80},        // house 15
-        {x: 300, y: 1000, width: 100, height: 60},       // shed
-        {x: 100, y: 800, width: 20, height: 100},        // pillar
-        {x: 1800, y: 600, width: 60, height: 120},       // tall block// tall block
+        {x: 1012, y: 572, width: 34, height: 225},
+        {x: 1171, y: 572, width: 34, height: 114},
+        {x: 1171, y: 686, width: 287, height: 73},
+        {x: 1011, y: 878, width: 33, height: 306},
+        {x: 848, y: 1188, width: 197, height: 75},
+        {x: 1152, y: 880, width: 93, height: 76},
+        {x: 1152, y: 955, width: 33, height: 231},
+        {x: 1153, y: 1189, width: 180, height: 78},
+        {x: 1012, y: 1358, width: 173, height: 78},
+        {x: 1547, y: 200, width: 301, height: 77},
+        {x: 1819, y: 274, width: 31, height: 313},
+        {x: 1507, y: 381, width: 128, height: 73},
+        {x: 1604, y: 453, width: 34, height: 326},
+        {x: 1408, y: 879, width: 269, height: 75},
+        {x: 1544, y: 1065, width: 34, height: 120},
+        {x: 1546, y: 1187, width: 308, height: 75},
 
     ]
 }

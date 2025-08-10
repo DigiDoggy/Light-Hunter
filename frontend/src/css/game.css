@@ -25,11 +25,13 @@ body {
 
 .game-container {
     position: relative;
-    width: 1280px;
-    height: 720px;
+    width: 2000px;
+    height: 2000px;
     background-image: url('../assets/skins/map/map1.png');
-    margin: 0 auto;
-    transition: transform 250ms ease-out;
+    background-size: 2000px 2000px;
+    background-repeat: no-repeat;
+    /*overflow: hidden;*/
+
 }
 
 .player {
@@ -48,7 +50,7 @@ body {
 
 .wall {
     position: absolute;
-    background: cyan;
-    border: 2px solid green;
+    /*background: cyan;*/
+    outline: 2px solid green;
     box-sizing: border-box;
 }
