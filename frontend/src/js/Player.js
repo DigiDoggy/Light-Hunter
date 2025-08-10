@@ -2,7 +2,7 @@ import { checkCollision } from "./collision.js";
 import GameObject from "./GameObject.js";
 
 export default class Player extends GameObject {
-    constructor(x, y, width = 20, height = 20, name = "player", speed = 200, gameContainer, facingAngle = 0, characterIndex= 0) {
+    constructor(x, y, width = 20, height = 20, name = "player", speed = 200, gameContainer, facingAngle = 0, characterIndex= 0, role = "hider") {
         super(x, y, width, height, "player", gameContainer);
         this.facingAngle = facingAngle;
         this.name = name;
@@ -10,6 +10,7 @@ export default class Player extends GameObject {
         this.animationTimer = 0;
         this.currentFrame = 0;
         this.characterIndex= characterIndex;
+        this.role = role;
     }
 
     #norm = Math.SQRT1_s2;

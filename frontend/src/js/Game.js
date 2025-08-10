@@ -11,11 +11,9 @@ export default class Game {
         this.gameContainer = document.getElementById("gameContainer");
         this.player = new Player(100, 100, 32, 48);
         this.player.setCharacterIndex(5)
-        this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
         this.gameObjects = [];
-        this.gameObjects.push(this.npc);
         this.gridSize = 100;
         this.spatialGrid = [];
         this.keys = {};
@@ -45,9 +43,11 @@ export default class Game {
         let closest = {x: x + dx * maxLength, y: y + dy * maxLength};
         let closestDist = maxLength;
         let closestType = null;
+        let closestRole = null;
+        let selfRole = this.player.role || null;
 
         for (const obj of this.gameObjects) {
-            if (obj.type !== "wall" && obj.type !== "npc") continue;
+            if (obj.type !== "wall" && obj.type !== "player") continue;
 
             const intersections = this.getRayBoxIntersections(x, y, dx, dy, obj);
 
@@ -57,12 +57,14 @@ export default class Game {
                     closest = point;
                     closestDist = dist;
                     closestType = obj.type;
+                    closestRole = obj.role || null;
+
                 }
             }
         }
         const npcThreshold = 150; // adjust as needed
 
-        if (closestType === "npc" && closestDist <= npcThreshold) {
+        if (closestRole === "hider"&& selfRole==='seeker' && closestDist <= npcThreshold) {
             alert('npc caught');
 
             console.log('npc caught');
