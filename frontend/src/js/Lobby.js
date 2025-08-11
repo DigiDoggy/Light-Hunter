@@ -58,8 +58,8 @@ export default class Lobby extends State {
             skin.className = "skin";
             this.prepareSkin(skin, 1, player.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
 
-            const playerName = document.createElement("p");
-            playerName.textContent = player.isHost ? "🔌" + player.username : player.username + (player.readyStatus === true ? "🟢" : "🔴");
+            const playerName = document.createElement("p");k
+            playerName.textContent = (player.isHost ? "🔌" + player.username : "") + player.username + (player.readyStatus === true ? "🟢" : "🔴");
 
             if (player.username === this.stateManager.username) {
                 playerName.style.color = "green";
