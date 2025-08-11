@@ -19,7 +19,7 @@ export default class Game extends State {
         this.flash = new Flashlight();
         this.gameObjects = [];
         this.gameObjects.push(this.npc);
-        this.gridSize = 100;
+        this.gridSize = 32;
         this.spatialGrid = [];
         this.keys = {};
         this.lastTime = performance.now();

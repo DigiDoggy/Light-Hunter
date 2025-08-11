@@ -1,3 +1,7 @@
+body {
+    overflow: hidden;
+}
+
 #flashlight {
     position: absolute;
     pointer-events: none;
@@ -13,9 +17,11 @@
     position: relative;
     width: 2000px;
     height: 2000px;
-    background: #8FBC8F;
-    margin: 0 auto;
-    transition: transform 250ms ease-out;
+    background-image: url('../assets/skins/map/map1.png');
+    background-size: 2000px 2000px;
+    background-repeat: no-repeat;
+    /*overflow: hidden;*/
+
 }
 
 .player {
@@ -34,7 +40,7 @@
 
 .wall {
     position: absolute;
-    background: cyan;
-    border: 2px solid green;
+    /*background: cyan;*/
+    /*border: 2px solid green;*/
     box-sizing: border-box;
 }
