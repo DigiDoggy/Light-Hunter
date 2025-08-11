@@ -5,8 +5,9 @@ export const Map1 = {
         {x: 0, y: 0, width: 32, height: 2000},
         {x: 0, y: 1960, width: 2000, height: 40},
         {x: 1960, y: 0, width: 40, height: 2000},
+
         {x: 151, y: 199, width: 220, height: 73},
-        {x: 151, y: 274, width: 32, height: 301},
+        {x: 151, y: 273, width: 32, height: 301},
         {x: 480, y: 200, width: 31, height: 166},
         {x: 290, y: 366, width: 223, height: 72},
         {x: 151, y: 1187, width: 262, height: 77},
@@ -22,7 +23,7 @@ export const Map1 = {
 
         {x: 793, y: 380, width: 33, height: 162},
         {x: 478, y: 540, width: 346, height: 74},
-        {x: 480, y: 611, width: 34, height: 173},
+        {x: 478, y: 611, width: 34, height: 173},
         {x: 673, y: 710, width: 224, height: 74},
         {x: 520, y: 879, width: 250, height: 75},
         {x: 597, y: 1066, width: 32, height: 295},
@@ -36,10 +37,10 @@ export const Map1 = {
         {x: 1012, y: 572, width: 34, height: 225},
         {x: 1171, y: 572, width: 34, height: 114},
         {x: 1171, y: 686, width: 287, height: 73},
-        {x: 1011, y: 878, width: 33, height: 306},
+        {x: 1011, y: 878, width: 33, height: 311},
         {x: 848, y: 1188, width: 197, height: 75},
         {x: 1152, y: 880, width: 93, height: 76},
-        {x: 1152, y: 955, width: 33, height: 231},
+        {x: 1152, y: 955, width: 33, height: 234},
         {x: 1153, y: 1189, width: 180, height: 78},
         {x: 1012, y: 1358, width: 173, height: 78},
         {x: 1547, y: 200, width: 301, height: 77},
@@ -47,7 +48,7 @@ export const Map1 = {
         {x: 1507, y: 381, width: 128, height: 73},
         {x: 1604, y: 453, width: 34, height: 326},
         {x: 1408, y: 879, width: 269, height: 75},
-        {x: 1544, y: 1065, width: 34, height: 120},
+        {x: 1544, y: 1065, width: 34, height: 122},
         {x: 1546, y: 1187, width: 308, height: 75},
 
     ]
