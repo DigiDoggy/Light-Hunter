@@ -6,6 +6,13 @@ export default class Player {
         this.#socket = socket;
         this.id = socket.id;
         this.username = username;
+        this.x = 100;
+        this.y = 100;
+        this.width = 32;
+        this.height = 48;
+        this.facingAngle = 0;
+        this.speed = 200;
+        this.isMoving = false;
         this.isHost = isHost;
         this.skinIndex = this.pickRandomUnusedSkin();
         this.readyStatus = false;
@@ -17,11 +24,7 @@ export default class Player {
         socket.on("updateSkin", (skinIndex) => {
             this.skinIndex = skinIndex;
             this.#game.broadcastPlayerList();
-        })
-
-        socket.on("getPlayers", () => {
-            socket.emit("getPlayers", this.#game.players);
-        })
+        });
 
         socket.on("updateReadyStatus", (status) => {
             this.readyStatus = status;
@@ -32,6 +35,14 @@ export default class Player {
                 }
             }
             this.#game.startGame();
+        })
+
+        socket.on("move", (data) => {
+            this.x = data.x;
+            this.y = data.y;
+            this.facingAngle = data.facingAngle;
+            this.isMoving = data.isMoving;
+            this.#game.broadcast("playerMoved", { id: socket.id, ...data});
         })
     }
 

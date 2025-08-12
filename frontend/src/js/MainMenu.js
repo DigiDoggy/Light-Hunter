@@ -14,15 +14,8 @@ export default class MainMenu extends State {
     }
 
     registerSocketHandlers() {
-        const onEntryResponse = (data) => {
-            this.stateManager.skinIndex = data.player.skinIndex;
-            this.stateManager.setGameId(data.gameId);
-            history.pushState({}, "", data.gameId);
-            this.stateManager.switchState("lobby");
-        }
-
-        this.onSocket("hostGame", onEntryResponse)
-        this.onSocket("joinGame", onEntryResponse)
+        this.onSocket("hostGame", () => this.stateManager.switchState("lobby"));
+        this.onSocket("joinGame", () => this.stateManager.switchState("lobby"));
         this.onSocket("error", (message) => this.error.textContent = message);
     }
 

@@ -10,19 +10,18 @@ export default class Game {
     }
 
     addPlayer(socket, username, isHost = false) {
-
         const player = new Player(this, socket, username, isHost);
         this.players[socket.id] = player;
         socket.join(this.id);
 
         this.registerSocketHandlers(socket);
         this.broadcastPlayerList();
+        this.broadcast("newPlayer", player);
 
         return player;
     }
 
     usernameExists(username) {
-        console.log(username)
         return Object.values(this.players).some(user => user.username.toLowerCase() === username.toLowerCase());
     }c
 
@@ -30,6 +29,15 @@ export default class Game {
         socket.on("updateMap", (mapId) => {
             this.mapId = mapId;
             this.broadcast("updateMap", mapId);
+        });
+
+        socket.on("getPlayers", () => {
+            socket.emit("getPlayers", this.players);
+        })
+
+        socket.on('disconnect', () => {
+            delete this.players[socket.id];
+            this.broadcast('playerDisconnected', socket.id);
         });
     }
 

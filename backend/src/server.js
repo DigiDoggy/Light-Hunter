@@ -15,16 +15,10 @@ const io = new Server(server, {
 
 const PORT = 8080;
 
-let players = {};
-
 let games = new Map();
 
 app.use(cors()); // Enable CORS for all HTTP routes
 app.use(express.json());
-
-app.get('/api/hello', (req, res) => {
-    res.json({ message: 'Hello from backend!' });
-});
 
 io.on('connection', (socket) => {
 
@@ -50,30 +44,8 @@ io.on('connection', (socket) => {
         const player = game.addPlayer(socket, data.username);
         socket.emit("joinGame", { gameId: game.id, player: player });
     })
-
-    socket.on("test", () => {
-        socket.emit("test");
-    })
-
-    players[socket.id] = { x: 100, y: 100 };
-    socket.emit('currentPlayers', players);
-    socket.broadcast.emit('newPlayer', { id: socket.id, ...players[socket.id] });
-
-    socket.on('move', (data) => {
-        players[socket.id] = data;
-        socket.broadcast.emit('playerMoved', { id: socket.id, ...data });
-    });
-
-    socket.on('disconnect', () => {
-        delete players[socket.id];
-        io.emit('playerDisconnected', socket.id);
-    });
 });
 
 server.listen(PORT, () => {
     console.log(`Backend running at http://localhost:${PORT}`);
 });
-
-function generateGameId() {
-
-}

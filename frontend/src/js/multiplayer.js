@@ -2,72 +2,98 @@
 'use strict';
 
 import io from 'socket.io-client';
+import {allMaps} from "./map.js";
 
 export const socket = io('http://localhost:8080');
 
-let players = {};
+export class SocketHandler {
+    constructor(stateManager) {
+        this.stateManager = stateManager;
+        this.socket = socket;
 
-// Socket event handlers
-socket.on('currentPlayers', (serverPlayers) => {
-    players = serverPlayers;
-    console.log('Current players:', players);
-});
-
-socket.on('newPlayer', (player) => {
-    players[player.id] = { x: player.x, y: player.y,facingAngle: player.facingAngle || 0 };
-    console.log('New player joined:', player);
-});
-
-socket.on('playerMoved', (player) => {
-    if (players[player.id]) {
-        players[player.id].x = player.x;
-        players[player.id].y = player.y;
-        players[player.id].facingAngle = player.facingAngle || 0;
-        console.log('Player moved:', player);
+        this.registerSocketEvents();
     }
-});
 
-socket.on('playerDisconnected', (id) => {
-    delete players[id];
-    console.log('Player disconnected:', id);
-});
+    registerSocketEvents() {
+        socket.on("getPlayers", (players) => {
+            this.stateManager.players = players;
+            console.log("getPlayers", players);
+        });
 
-// Multiplayer utility functions
-export function sendPlayerMove(x, y, facingAngle) {
-    socket.emit('move', { x, y, facingAngle });
+        socket.on("newPlayer", (player) => {
+            this.stateManager.players[player.id] = player;
+            console.log('New player joined:', player);
+        });
+
+        socket.on('playerDisconnected', (id) => {
+            delete this.stateManager.players[id];
+            console.log('Player disconnected:', id);
+        });
+
+        socket.on("playerMoved", (player) => {
+            const p = this.stateManager.players[player.id];
+            if (!p || p.id === socket.id) return;
+
+            p.x = player.x;
+            p.y = player.y;
+            p.facingAngle = player.facingAngle;
+            p.isMoving = player.isMoving;
+        });
+
+        socket.on("hostGame", (data) => {
+            this.onHostJoinResponse(data);
+        })
+
+        socket.on("joinGame", (data) => {
+            this.onHostJoinResponse(data);
+        })
+
+        socket.on("updateMap", (mapId) => {
+            const map = allMaps.find(map => map.id === mapId);
+            if (!map) {
+                console.error(`Map with with id:${mapId} not found`);
+                return;
+            }
+            this.stateManager.map = map;
+            console.log("map updated", mapId);
+        })
+
+        socket.on("startGame", () => {
+            this.stateManager.gameStatus = "started";
+        })
+
+        socket.on("error", (err) => {
+            this.stateManager.error(err);
+            console.log(err);
+        })
+    }
+
+    onHostJoinResponse(data) {
+        this.stateManager.skinIndex = data.player.skinIndex;
+        this.stateManager.setGameId(data.gameId);
+        history.pushState({}, "", data.gameId);
+    }
 }
 
-// export function getPlayers() {
-//     return players;
-// }
+// Multiplayer utility functions
+export function sendPlayerMove(x, y, facingAngle, isMoving) {
+    socket.emit('move', { x, y, facingAngle, isMoving });
+}
 
 export function getMyId() {
     return socket.id;
 }
 
-socket.on("error", (err) => {
-    console.log(err);
-})
-
 export function hostGame(username) {
-    socket.emit("hostGame", { username: username });
+    socket.emit("hostGame", { username });
 }
 
 export function getPlayers() {
     socket.emit("getPlayers");
 }
 
-// socket.on("getPlayers", (players) => {
-//
-// })
-
 export function updateReadyStatus(status) {
     socket.emit("updateReadyStatus", status);
-}
-
-export function testEmit() {
-    console.log("emit")
-    socket.emit("test");
 }
 
 export function updateSkin(skinIndex) {
@@ -75,7 +101,7 @@ export function updateSkin(skinIndex) {
 }
 
 export function joinGame(gameId, username) {
-    socket.emit("joinGame", { gameId: gameId, username: username });
+    socket.emit("joinGame", { gameId, username });
 }
 
 export function updateMap(mapId) {

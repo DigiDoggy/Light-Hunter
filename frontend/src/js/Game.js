@@ -142,10 +142,10 @@ export default class Game extends State {
 
         // Handle player movement and send updates to the server
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle);
+        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving);
 
         // Update other players from the server
-        const players = getPlayers();
+        const players = this.stateManager.players;
         this.updateOtherPlayers(players);
 
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
@@ -178,7 +178,7 @@ export default class Game extends State {
         const playerCenterY = this.player.y + this.player.height / 2;
         addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0);
 
-        const players = getPlayers();
+        const players = this.stateManager.players;
         for (const id in players) {
             if (id === getMyId()) continue;
             const p = players[id];
@@ -196,14 +196,16 @@ export default class Game extends State {
 
             let otherPlayer = this.gameObjects.find(obj => obj.id === id);
             if (!otherPlayer) {
-                otherPlayer = new GameObject(playerData.x, playerData.y, 20, 20, "player", this.container);
+                otherPlayer = new Player(playerData.x, playerData.y, 32, 48, playerData.username, undefined, this.container, undefined, playerData.skinIndex);
                 otherPlayer.id = id;
                 this.gameObjects.push(otherPlayer);
             } else {
                 otherPlayer.x = playerData.x;
                 otherPlayer.y = playerData.y;
                 otherPlayer.facingAngle = playerData.facingAngle || 0;
+                otherPlayer.isMoving = playerData.isMoving;
                 otherPlayer.updatePosition();
+                otherPlayer.animate(this.delta, undefined, otherPlayer.getDirectionFromAngle());
             }
         }
 
@@ -214,9 +216,5 @@ export default class Game extends State {
             }
             return true;
         });
-    }
-
-    cleanup() {
-        this.rootContainer.innerHTML = "";
     }
 }

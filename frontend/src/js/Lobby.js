@@ -25,26 +25,9 @@ export default class Lobby extends State {
     }
 
     registerSocketHandlers() {
-        this.onSocket("getPlayers", (players) => {
-            console.log("players", players);
-            this.stateManager.players = players;
-            this.updatePlayerList(this.playerList);
-        });
-
-        this.onSocket("startGame", () => {
-            console.log("startGame");
-            this.stateManager.switchState("game")
-        });
-
-        this.onSocket("updateMap", (mapId) => {
-            const map = allMaps.find(map => map.id === mapId);
-            if (!map) {
-                console.error(`Map with with id:${mapId} not found`);
-                return;
-            }
-            this.stateManager.selectedMap = map;
-            this.openMapSelectorButton.style.backgroundImage = `url(${this.map.imagePath})`;
-        });
+        this.onSocket("getPlayers", () => this.updatePlayerList(this.playerList));
+        this.onSocket("updateMap", () => this.openMapSelectorButton.style.backgroundImage = `url(${this.stateManager.map.imagePath})`);
+        this.onSocket("startGame", () => this.stateManager.switchState("game"));
     }
 
     render() {
@@ -90,7 +73,7 @@ export default class Lobby extends State {
 
         const openMapSelector = document.createElement("img");
         openMapSelector.className = "open-map-selector-button map";
-        openMapSelector.style.backgroundImage = `url(${this.stateManager.selectedMap.imagePath})`;
+        openMapSelector.style.backgroundImage = `url(${this.stateManager.map.imagePath})`;
         this.addEventListener(openMapSelector, "click", () => {
             this.mapSelector(mapContainer);
         })
@@ -112,7 +95,7 @@ export default class Lobby extends State {
             map.className = "map";
             map.style.backgroundImage = `url(${mapData.imagePath}`;
             this.addEventListener(map, "click", () => {
-                this.stateManager.selectedMap = mapData;
+                this.stateManager.map = mapData;
                 this.openMapSelectorButton.style.backgroundImage = `url(${mapData.imagePath})`;
                 container.removeChild(mapMenu);
                 this.container.removeChild(document.getElementById("darknessOverlay"));
