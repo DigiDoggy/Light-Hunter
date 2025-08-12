@@ -37,8 +37,13 @@ export default class Lobby extends State {
         });
 
         this.onSocket("updateMap", (mapId) => {
-            this.stateManager.updateMap(mapId);
-            this.openMapSelectorButton.style.backgroundImage = `url(${this.stateManager.selectedMap.imagePath})`;
+            const map = allMaps.find(map => map.id === mapId);
+            if (!map) {
+                console.error(`Map with with id:${mapId} not found`);
+                return;
+            }
+            this.stateManager.selectedMap = map;
+            this.openMapSelectorButton.style.backgroundImage = `url(${this.map.imagePath})`;
         });
     }
 
