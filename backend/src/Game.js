@@ -15,7 +15,6 @@ export default class Game {
         socket.join(this.id);
 
         this.registerSocketHandlers(socket);
-        this.broadcastPlayerList();
         this.broadcast("newPlayer", player);
 
         return player;
@@ -23,7 +22,7 @@ export default class Game {
 
     usernameExists(username) {
         return Object.values(this.players).some(user => user.username.toLowerCase() === username.toLowerCase());
-    }c
+    }
 
     registerSocketHandlers(socket) {
         socket.on("updateMap", (mapId) => {

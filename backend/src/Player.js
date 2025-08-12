@@ -23,14 +23,14 @@ export default class Player {
     registerSocketHandlers(socket) {
         socket.on("updateSkin", (skinIndex) => {
             this.skinIndex = skinIndex;
-            this.#game.broadcastPlayerList();
+            this.#game.broadcast("updateSkin", { id: this.id, skinIndex: this.skinIndex });
         });
 
         socket.on("updateReadyStatus", (status) => {
             this.readyStatus = status;
             for (const [id, player] of Object.entries(this.#game.players)) {
                 if (player.readyStatus === false) {
-                    this.#game.broadcastPlayerList();
+                    this.#game.broadcast("updateReadyStatus", { id: this.id, readyStatus: status });
                     return;
                 }
             }

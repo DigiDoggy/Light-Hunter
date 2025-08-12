@@ -58,8 +58,18 @@ export class SocketHandler {
             console.log("map updated", mapId);
         })
 
+        socket.on("updateSkin", (player) => {
+            this.stateManager.players[player.id].skinIndex = player.skinIndex;
+        })
+
+        socket.on("updateReadyStatus", (player) => {
+            this.stateManager.players[player.id].readyStatus = player.readyStatus;
+            console.log("update ready status:", player);
+        })
+
         socket.on("startGame", () => {
             this.stateManager.gameStatus = "started";
+            console.log("start game")
         })
 
         socket.on("error", (err) => {

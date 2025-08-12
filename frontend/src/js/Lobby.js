@@ -25,7 +25,10 @@ export default class Lobby extends State {
     }
 
     registerSocketHandlers() {
-        this.onSocket("getPlayers", () => this.updatePlayerList(this.playerList));
+        this.onSocket("getPlayers", () => this.updatePlayerList());
+        this.onSocket("newPlayer", () => this.updatePlayerList());
+        this.onSocket("updateSkin", () => this.updatePlayerList());
+        this.onSocket("updateReadyStatus", () => this.updatePlayerList());
         this.onSocket("updateMap", () => this.openMapSelectorButton.style.backgroundImage = `url(${this.stateManager.map.imagePath})`);
         this.onSocket("startGame", () => this.stateManager.switchState("game"));
     }
@@ -42,8 +45,8 @@ export default class Lobby extends State {
         this.container.appendChild(frame);
     }
 
-    updatePlayerList(playerList) {
-        playerList.innerHTML = "";
+    updatePlayerList() {
+        this.playerList.innerHTML = "";
         for (const [id, player] of Object.entries(this.stateManager.players)) {
             const playerEl = document.createElement("div");
             playerEl.classList.add("player-list-item");
@@ -60,7 +63,7 @@ export default class Lobby extends State {
             }
 
             playerEl.append(skin, playerName);
-            playerList.append(playerEl);
+            this.playerList.append(playerEl);
         }
     }
 
@@ -137,7 +140,8 @@ export default class Lobby extends State {
         readyButton.textContent = "Ready";
 
         this.addEventListener(readyButton, "click", () => {
-            updateReadyStatus(!this.stateManager.readyStatus)
+            this.stateManager.readyStatus = !this.stateManager.readyStatus;
+            updateReadyStatus(this.stateManager.readyStatus)
             readyButton.classList.toggle("ready")
 
             // dev
