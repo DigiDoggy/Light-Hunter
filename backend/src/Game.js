@@ -6,6 +6,7 @@ export default class Game {
         this.io = io;
         this.id = crypto.randomUUID().substring(0, 8).toUpperCase(); // todo check for collision
         this.host = hostSocket;
+        this.mapId = 0;
     }
 
     addPlayer(socket, username, isHost = false) {
@@ -23,21 +24,24 @@ export default class Game {
     usernameExists(username) {
         console.log(username)
         return Object.values(this.players).some(user => user.username.toLowerCase() === username.toLowerCase());
-    }
+    }c
 
     registerSocketHandlers(socket) {
-
+        socket.on("updateMap", (mapId) => {
+            this.mapId = mapId;
+            this.broadcast("updateMap", mapId);
+        });
     }
 
     broadcastPlayerList() {
-        this.broadcastToRoom("getPlayers", this.players);
+        this.broadcast("getPlayers", this.players);
     }
 
     startGame() {
-        this.broadcastToRoom("startGame");
+        this.broadcast("startGame");
     }
 
-    broadcastToRoom(message, data) {
+    broadcast(message, data) {
         this.io.to(this.id).emit(message, data);
     }
 }

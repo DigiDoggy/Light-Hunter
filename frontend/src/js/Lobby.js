@@ -1,4 +1,5 @@
-import {updateSkin, testEmit, getPlayers, updateReadyStatus} from "./multiplayer.js";
+import { allMaps } from "./map.js";
+import {updateSkin, updateMap, getPlayers, updateReadyStatus} from "./multiplayer.js";
 import "../css/lobby.css";
 import State from "./State.js";
 
@@ -34,6 +35,11 @@ export default class Lobby extends State {
             console.log("startGame");
             this.stateManager.switchState("game")
         });
+
+        this.onSocket("updateMap", (mapId) => {
+            this.stateManager.updateMap(mapId);
+            this.openMapSelectorButton.style.backgroundImage = `url(${this.stateManager.selectedMap.imagePath})`;
+        });
     }
 
     render() {
@@ -58,8 +64,8 @@ export default class Lobby extends State {
             skin.className = "skin";
             this.prepareSkin(skin, 1, player.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
 
-            const playerName = document.createElement("p");k
-            playerName.textContent = (player.isHost ? "🔌" + player.username : "") + player.username + (player.readyStatus === true ? "🟢" : "🔴");
+            const playerName = document.createElement("p");
+            playerName.textContent = (player.isHost ? "🔌" : "") + player.username + (player.readyStatus === true ? "🟢" : "🔴");
 
             if (player.username === this.stateManager.username) {
                 playerName.style.color = "green";
@@ -71,36 +77,67 @@ export default class Lobby extends State {
     }
 
     renderMapSection(container) {
-
-        // todo map selector
-
         const mapContainer = document.createElement("div");
         mapContainer.className = "map-container";
 
         const title = document.createElement("p");
         title.textContent = "Map";
 
-        const dropdown = document.createElement("select");
-        dropdown.className = "map-list menu-item";
-
-        this.addEventListener(dropdown,"change", (e) => {
-            const selectedValue = e.target.value;
-            console.log(selectedValue);
+        const openMapSelector = document.createElement("img");
+        openMapSelector.className = "open-map-selector-button map";
+        openMapSelector.style.backgroundImage = `url(${this.stateManager.selectedMap.imagePath})`;
+        this.addEventListener(openMapSelector, "click", () => {
+            this.mapSelector(mapContainer);
         })
+        this.openMapSelectorButton = openMapSelector;
 
-        const maps = ["map1", "map2"];
-
-        maps.forEach((map) => {
-            const option = document.createElement("option");
-            option.value = map;
-            option.textContent = map;
-            dropdown.appendChild(option);
-        })
-
-
-
-        mapContainer.append(title, dropdown);
+        mapContainer.append(title, openMapSelector);
         container.appendChild(mapContainer);
+    }
+
+    mapSelector(container) {
+        const mapMenu = this.popupMenu(container, "map-selector");
+
+        const title = document.createElement("p");
+        title.textContent = "Pick a map";
+        mapMenu.appendChild(title);
+
+        allMaps.forEach(mapData => {
+            const map = document.createElement("img");
+            map.className = "map";
+            map.style.backgroundImage = `url(${mapData.imagePath}`;
+            this.addEventListener(map, "click", () => {
+                this.stateManager.selectedMap = mapData;
+                this.openMapSelectorButton.style.backgroundImage = `url(${mapData.imagePath})`;
+                container.removeChild(mapMenu);
+                this.container.removeChild(document.getElementById("darknessOverlay"));
+
+                updateMap(mapData.id);
+            })
+
+            mapMenu.append(map);
+        })
+
+        container.appendChild(mapMenu);
+    }
+
+    popupMenu(container, name) {
+        const darknessOverlay = document.createElement("div");
+        darknessOverlay.id = "darknessOverlay";
+        darknessOverlay.className = "darkness-overlay";
+        this.container.appendChild(darknessOverlay);
+
+        const frame = document.createElement("div");
+        frame.id = name;
+        frame.className = `${name} menu-frame`;
+        container.appendChild(frame);
+
+        this.addEventListener(darknessOverlay, "click", () => {
+            container.removeChild(frame);
+            this.container.removeChild(darknessOverlay);
+        })
+
+        return frame;
     }
 
     renderReadyButton(container) {
@@ -155,30 +192,11 @@ export default class Lobby extends State {
     }
 
     renderSkinSelector(container, menuButton) {
-        const skinSelector = document.getElementById("skin-selector");
-        if (skinSelector) {
-            skinSelector.classList.remove("hidden");
-            document.getElementById("darknessOverlay").classList.remove("hidden");
-            return;
-        }
-
-        const darknessOverlay = document.createElement("div");
-        darknessOverlay.id = "darknessOverlay";
-        darknessOverlay.className = "darkness-overlay";
-        container.appendChild(darknessOverlay);
-
-        const frame = document.createElement("div");
-        frame.id = "skin-selector";
-        frame.className = "skin-selector menu-frame";
-
-        this.addEventListener(darknessOverlay, "click", () => {
-            frame.classList.toggle("hidden");
-            darknessOverlay.classList.toggle("hidden");
-        })
+        const skinMenu = this.popupMenu(container, "skin-selector");
 
         const title = document.createElement("p")
         title.textContent = "Pick a skin";
-        frame.appendChild(title);
+        skinMenu.appendChild(title);
 
         const skins = document.createElement("div");
         skins.classList.add("skin-grid");
@@ -190,16 +208,14 @@ export default class Lobby extends State {
             this.addEventListener(skin, "click", () => {
                 this.stateManager.skinIndex = i;
                 this.prepareSkin(menuButton, 3, i, ANIMATION_DIRECTIONS.FRONT, 1);
-                frame.classList.add("hidden");
-                darknessOverlay.classList.add("hidden");
-
+                container.removeChild(skinMenu);
+                this.container.removeChild(document.getElementById("darknessOverlay"));
                 updateSkin(i);
             })
             skins.append(skin);
         }
 
-        frame.appendChild(skins);
-        container.append(frame);
+        skinMenu.appendChild(skins);
     }
 
     prepareSkin(element, scale = 3,skinIndex, direction, animation) {

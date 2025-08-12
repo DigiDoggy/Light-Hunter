@@ -1,4 +1,6 @@
 export const Map1 = {
+    id: 0,
+    imagePath: "./src/assets/skins/map/map1.png",
     walls: [
         // border
         {x: 0, y: 0, width: 2000, height: 84},
@@ -50,6 +52,7 @@ export const Map1 = {
         {x: 1408, y: 879, width: 269, height: 75},
         {x: 1544, y: 1065, width: 34, height: 122},
         {x: 1546, y: 1187, width: 308, height: 75},
-
     ]
 }
+
+export const allMaps = [Map1];

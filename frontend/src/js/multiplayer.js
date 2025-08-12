@@ -77,3 +77,7 @@ export function updateSkin(skinIndex) {
 export function joinGame(gameId, username) {
     socket.emit("joinGame", { gameId: gameId, username: username });
 }
+
+export function updateMap(mapId) {
+    socket.emit("updateMap", mapId)
+}

@@ -2,6 +2,7 @@ import Game from './Game';
 import MainMenu from './MainMenu';
 import Lobby from './Lobby';
 import { socket } from "./multiplayer.js"
+import { Map1, allMaps } from "./map";
 
 export default class AppStateManager {
     constructor() {
@@ -19,6 +20,7 @@ export default class AppStateManager {
         this.skinIndex = null;
         this.readyStatus = false;
         this.players = [];
+        this.selectedMap = Map1;
 
         this.gameId = null;
 
@@ -58,5 +60,11 @@ export default class AppStateManager {
             console.error(`State ${state} not found`);
         }
 
+    }
+
+    updateMap(mapId) {
+        allMaps.forEach((map) => {
+            if (map.id === mapId) this.selectedMap = map;
+        })
     }
 }
