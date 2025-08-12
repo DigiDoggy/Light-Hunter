@@ -54,3 +54,14 @@ body {
     /*border: 2px solid green;*/
     box-sizing: border-box;
 }
+
+.bonus{
+    position:absolute;
+}
+.bonus--speed{
+    background-image: url('../assets/skins/bonusBox/speed.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+

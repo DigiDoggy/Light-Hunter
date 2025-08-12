@@ -5,6 +5,7 @@ import GameObject from "./GameObject.js";
 import {getPlayers, getMyId, sendPlayerMove} from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./flashlight.js";
+import BonusBox from "./BonusBox.js";
 
 export default class Game {
     constructor() {
@@ -32,10 +33,31 @@ export default class Game {
         this.createMap()
         this.setupEventListeners();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
+//bonus
+        this.spawnBonus(this.gameObjects, this.gameContainer);
+
         this.gameLoop();
     }
 
+    spawnBonus(gameObjects, gameContainer) {
+        const size = 28;
+        let x, y, collides;
 
+        do {
+            x = Math.floor(Math.random() * (600 - size));
+            y = Math.floor(Math.random() * (600 - size));
+
+            collides = Map1.walls.some(wall =>
+                !(x + size <= wall.x ||
+                    wall.x + wall.width <= x ||
+                    y + size <= wall.y ||
+                    wall.y + wall.height <= y)
+            );
+        } while (collides);
+
+        const bonus = new BonusBox(x, y, size, "speed", gameContainer);
+        gameObjects.push(bonus);
+    }
 
 
     castRay(x, y, angle, maxLength) {
