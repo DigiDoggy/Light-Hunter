@@ -58,8 +58,15 @@ body {
 .bonus{
     position:absolute;
 }
+
 .bonus--speed{
     background-image: url('../assets/skins/bonusBox/speed.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+.bonus--vision{
+    background-image: url('../assets/skins/bonusBox/openMap.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
