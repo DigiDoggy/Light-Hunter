@@ -135,7 +135,7 @@ export default class Game {
 
         // Handle player movement and send updates to the server
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-        sendPlayerMove(this.player.x, this.player.y);
+        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.element.style.width, this.player.element.style.height, this.player.element.style.backgroundPosition);
 
         // Update other players from the server
         const players = getPlayers();
@@ -196,13 +196,15 @@ export default class Game {
                 otherPlayer.x = playerData.x;
                 otherPlayer.y = playerData.y;
                 otherPlayer.facingAngle = playerData.facingAngle || 0;
+                otherPlayer.backgroundPosition = playerData.backgroundPosition;
                 otherPlayer.updatePosition();
+                otherPlayer.updateSkinFrame(otherPlayer.getDirectionFromAngle(), 1);
             }
         }
 
         this.gameObjects = this.gameObjects.filter(obj => {
             if (obj.type === "player" && !players[obj.id]) {
-                obj.remove();
+                obj.element.remove();
                 return false;
             }
             return true;
