@@ -14,7 +14,7 @@ socket.on('currentPlayers', (serverPlayers) => {
 });
 
 socket.on('newPlayer', (player) => {
-    players[player.id] = { x: player.x, y: player.y };
+    players[player.id] = { x: player.x, y: player.y, facingAngle: player.facingAngle, backgroundPosition: player.backgroundPosition };
     console.log('New player joined:', player);
 });
 
@@ -22,7 +22,10 @@ socket.on('playerMoved', (player) => {
     if (players[player.id]) {
         players[player.id].x = player.x;
         players[player.id].y = player.y;
-        console.log('Player moved:', player);
+        players[player.id].facingAngle = player.facingAngle;
+        players[player.id].backgroundPosition = player.backgroundPosition;
+        players[player.id].width = player.width;
+        players[player.id].height = player.height;
     }
 });
 
@@ -32,8 +35,8 @@ socket.on('playerDisconnected', (id) => {
 });
 
 // Multiplayer utility functions
-export function sendPlayerMove(x, y) {
-    socket.emit('move', { x, y });
+export function sendPlayerMove(x, y, facingAngle = 0,width = 20, height = 20, backgroundPosition = "0 0") {
+    socket.emit('move', { x, y, facingAngle, width, height, backgroundPosition });
 }
 
 export function getPlayers() {
