@@ -34,6 +34,7 @@ export default class Lobby extends State {
     }
 
     render() {
+
         const frame = document.createElement("div")
         frame.className = "menu-frame lobby";
 

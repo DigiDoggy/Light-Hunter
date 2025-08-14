@@ -6,14 +6,15 @@ export default class Player {
         this.#socket = socket;
         this.id = socket.id;
         this.username = username;
-        this.x = 100;
-        this.y = 100;
+        this.x = 1900;
+        this.y = 1900;
         this.width = 32;
         this.height = 48;
         this.facingAngle = 0;
         this.speed = 200;
         this.isMoving = false;
         this.isHost = isHost;
+        this.role = 'hider';
         this.skinIndex = this.pickRandomUnusedSkin();
         this.readyStatus = false;
 

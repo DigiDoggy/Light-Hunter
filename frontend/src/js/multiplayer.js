@@ -67,9 +67,20 @@ export class SocketHandler {
             console.log("update ready status:", player);
         })
 
-        socket.on("startGame", () => {
+
+        socket.on("startGame", (data) => {
+            console.log("start game", data);
+
+            if (data) {
+                this.stateManager.players = data;
+
+            }
+
             this.stateManager.gameStatus = "started";
-            console.log("start game")
+
+
+
+            console.log("start game", this.stateManager.players);
         })
 
         socket.on("error", (err) => {
@@ -117,3 +128,4 @@ export function joinGame(gameId, username) {
 export function updateMap(mapId) {
     socket.emit("updateMap", mapId)
 }
+

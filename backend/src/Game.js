@@ -9,6 +9,20 @@ export default class Game {
         this.mapId = 0;
     }
 
+    assignRoles() {
+        const playerIds = Object.keys(this.players);
+        const seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];
+        playerIds.forEach(id => {
+            const player = this.players[id];
+            if (id === seekerId) {
+                player.role = "seeker";
+                player.x = 1900;
+                player.y = 1900;
+            }
+        });
+        console.log(this.players);
+    }
+
     addPlayer(socket, username, isHost = false) {
         const player = new Player(this, socket, username, isHost);
         this.players[socket.id] = player;
@@ -45,7 +59,8 @@ export default class Game {
     }
 
     startGame() {
-        this.broadcast("startGame");
+        this.assignRoles();
+        this.broadcast("startGame", this.players);
     }
 
     broadcast(message, data) {

@@ -190,13 +190,15 @@ export default class Game extends State {
 
 
     updateOtherPlayers(players) {
+        console.log(this.player.role);
         for (const id in players) {
             if (id === getMyId()) continue;
             const playerData = players[id];
 
             let otherPlayer = this.gameObjects.find(obj => obj.id === id);
             if (!otherPlayer) {
-                otherPlayer = new Player(playerData.x, playerData.y, 32, 48, playerData.username, undefined, this.container, undefined, playerData.skinIndex);
+                console.log("Creating new player object for", playerData);
+                otherPlayer = new Player(playerData.x, playerData.y, 32, 48, playerData.username, undefined, this.container, undefined, playerData.skinIndex, playerData.role);
                 otherPlayer.id = id;
                 this.gameObjects.push(otherPlayer);
             } else {
