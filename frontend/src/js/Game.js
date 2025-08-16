@@ -14,11 +14,9 @@ export default class Game extends State {
         this.setupContainer("gameContainer", "game-container");
         this.player = new Player(100, 100, 32, 48);
         this.player.setCharacterIndex(this.stateManager.skinIndex)
-        this.npc = new GameObject(300, 300, 20, 20, "npc", this.container);
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
         this.gameObjects = [];
-        this.gameObjects.push(this.npc);
         this.gridSize = 32;
         this.spatialGrid = [];
         this.keys = {};
@@ -34,9 +32,14 @@ export default class Game extends State {
         this.setupEventListeners();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
         this.gameLoop();
+        this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
     }
 
-
+    setPlayerPosition(x, y) {
+        this.player.x = x;
+        this.player.y = y;
+        this.player.updatePosition();
+    }
 
 
     castRay(x, y, angle, maxLength) {
@@ -190,7 +193,6 @@ export default class Game extends State {
 
 
     updateOtherPlayers(players) {
-        console.log(this.player.role);
         for (const id in players) {
             if (id === getMyId()) continue;
             const playerData = players[id];

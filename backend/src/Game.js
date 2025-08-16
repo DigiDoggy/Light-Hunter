@@ -19,6 +19,10 @@ export default class Game {
                 player.x = 1900;
                 player.y = 1900;
             }
+            else {
+                player.x = Math.random() * 500 + 100;
+                player.y = Math.random() * 500 + 100;
+            }
         });
         console.log(this.players);
     }
@@ -60,6 +64,7 @@ export default class Game {
 
     startGame() {
         this.assignRoles();
+
         this.broadcast("startGame", this.players);
     }
 

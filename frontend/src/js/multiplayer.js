@@ -73,6 +73,8 @@ export class SocketHandler {
 
             if (data) {
                 this.stateManager.players = data;
+                console.log("start game with data", data);
+
 
             }
 
