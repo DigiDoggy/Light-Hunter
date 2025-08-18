@@ -11,6 +11,7 @@ export default class Game {
     constructor() {
         this.gameContainer = document.getElementById("gameContainer");
         this.player = new Player(100, 100, 32, 48);
+        this.player.setRole('seeker')
         this.player.setCharacterIndex(5)
         this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
         this.camera = new Camera(0.1);
@@ -25,10 +26,6 @@ export default class Game {
         //for Bonus Box timing
         this.spawnEverySec = 5;
         this._spawnElapsed = 0;
-        this.darkness=true;
-
-
-
 
         this.gameContainer.appendChild(this.flash.flashlightOverlay);
 
@@ -56,7 +53,7 @@ export default class Game {
         this.setupEventListeners();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
 
-        this.gameLoop();
+        this.gameLoop(5);
     }
 
     spawnBonus(gameObjects, gameContainer) {
@@ -121,10 +118,8 @@ export default class Game {
 
         if (!ok) return; // if don't have place for spawn just chancel spawn
 
-        //todo  that is for future when need spawn random bonuses
 
-        const types = ["speed","vision"]
-            // "phase","revealMap","revealEnemy"];
+        const types = ["speed","vision","timeShift"]
         const type  = types[(Math.random() * types.length) | 0];
 
         const bonus = new BonusBox(x, y, size, type, gameContainer);

@@ -30,12 +30,31 @@ export default class BonusBox extends GameObject {
             revert(player, game){
                 game.setDarkness?.(true);
             }
+        },
+        timeShift:{
+            duration:0,
+            apply(player,game){
+                const peaceOfTime=5000;
+                const delta = player?.role=='seeker' ? + peaceOfTime: -peaceOfTime;
+
+                game?.addTime?.(delta);
+
+                //todo sound for pickup bonus
+                //game?.sound?.palay?.('some')
+                // some broadCast
+                //game?.broadcast?.(`${player.name} changed timer for ${delta > 0 ? '+' : ''}${Math.round(delta/1000)}с`);
+            }
         }
     };
 
     activate(player, game) {
         const def = BonusBox.defs[this.bonusType];
         if (!def) return;
+
+        if (!def.duration || def.duration <= 0) {
+            def.apply?.(player, game);
+            return;
+        }
 
         player.effects ??= {};
 

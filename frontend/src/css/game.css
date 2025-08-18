@@ -71,4 +71,10 @@ body {
     background-repeat: no-repeat;
     background-position: center;
 }
+.bonus--timeShift{
+    background-image: url('../assets/skins/bonusBox/timeShift.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+}
 
