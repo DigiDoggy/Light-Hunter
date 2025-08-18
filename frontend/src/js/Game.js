@@ -44,9 +44,7 @@ export default class Game {
             if (overlay.isConnected) {
                 overlay.remove();
             }
-        }
-        this.darkness = !!enabled;
-    }
+        }}
 
     init() {
         this.createMap()
