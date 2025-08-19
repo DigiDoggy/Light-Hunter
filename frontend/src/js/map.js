@@ -9,7 +9,7 @@ export const Map1 = {
         {x: 151, y: 199, width: 220, height: 73},
         {x: 151, y: 273, width: 32, height: 301},
         {x: 480, y: 200, width: 31, height: 166},
-        {x: 290, y: 366, width: 223, height: 72},
+        {x: 290, y: 366, width: 221, height: 72},
         {x: 151, y: 1187, width: 262, height: 77},
         {x: 151, y: 703, width: 35, height: 280},
         {x: 151, y: 983, width: 263, height: 77},
@@ -49,7 +49,7 @@ export const Map1 = {
         {x: 1604, y: 453, width: 34, height: 326},
         {x: 1408, y: 879, width: 269, height: 75},
         {x: 1544, y: 1065, width: 34, height: 122},
-        {x: 1546, y: 1187, width: 308, height: 75},
+        {x: 1544, y: 1187, width: 308, height: 75},
 
     ]
 }

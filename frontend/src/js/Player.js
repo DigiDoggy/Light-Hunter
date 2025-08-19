@@ -1,15 +1,32 @@
 import { checkCollision } from "./collision.js";
 import GameObject from "./GameObject.js";
-
+// todo need create array of bonuses
 export default class Player extends GameObject {
-    constructor(x, y, width = 20, height = 20, name = "player", speed = 200, gameContainer, facingAngle = 0, characterIndex= 0) {
+    constructor(x, y, width = 20, height = 20, name = "player", role,speed = 200, gameContainer, facingAngle = 0, characterIndex= 0) {
         super(x, y, width, height, "player", gameContainer);
         this.facingAngle = facingAngle;
         this.name = name;
+        this.baseSpeed= speed;
+        this.role=role;
         this.speed = speed;
         this.animationTimer = 0;
         this.currentFrame = 0;
         this.characterIndex= characterIndex;
+        this.effects={};
+    }
+
+    setRole(role){
+        this.role=role;
+    }
+
+    setBaseSpeed(newBase){
+        this.baseSpeed=newBase;
+        if (!this.effects?.speed){
+            this.speed=newBase;
+        }
+    }
+    resetSpeedToBase(){
+        this.speed = this.baseSpeed;
     }
 
     #norm = Math.SQRT1_s2;

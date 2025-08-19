@@ -64,5 +64,11 @@ export default class GameObject {
         this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
     }
 
+    remove() {
+        if (this.element ) {
+            this.element.remove();
+        }
+    }
+
 
 }
