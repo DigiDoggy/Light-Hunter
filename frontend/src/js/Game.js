@@ -2,7 +2,7 @@ import {Map1} from "./map.js";
 import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
-import {getPlayers, getMyId, sendPlayerMove} from "./multiplayer.js";
+import {getPlayers, getMyId, sendPlayerMove, pickupBonus} from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./flashlight.js";
 import BonusBox from "./BonusBox.js";
@@ -10,7 +10,7 @@ import BonusBox from "./BonusBox.js";
 export default class Game {
     constructor() {
         this.gameContainer = document.getElementById("gameContainer");
-        this.player = new Player(100, 100, 32, 48);
+        this.player = new Player(100, 100, 32, 48, this.gameContainer);
         this.player.setRole('seeker')
         this.player.setCharacterIndex(5)
         this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
@@ -28,6 +28,16 @@ export default class Game {
         this._spawnElapsed = 0;
 
         this.gameContainer.appendChild(this.flash.flashlightOverlay);
+
+        window.addEventListener('bonus:sync', (e) => {
+            this.rebuildBonuses(e.detail.bonuses);
+        });
+        window.addEventListener('bonus:spawn', (e) => {
+            this.createBonusFromServer(e.detail);
+        });
+        window.addEventListener('bonus:remove', (e) => {
+            this.removeBonusById(e.detail.id);
+        });
 
 
         this.init();
@@ -51,80 +61,31 @@ export default class Game {
         this.setupEventListeners();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
 
-        this.gameLoop(5);
+        this.gameLoop(performance.now());
     }
 
-    spawnBonus(gameObjects, gameContainer) {
-        const size = 28;
-        const radiusMin = 120;
-        const radiusMax = 300;
-        const attempts  = 20;
-
-        //player center
-        const px = this.player.x + this.player.width / 2;
-        const py = this.player.y + this.player.height / 2;
-
-        const maxX = this.gameContainer.clientWidth  - size;
-        const maxY = this.gameContainer.clientHeight - size;
-
-        const isColliding = (x, y) => {
-            const rect = { x, y, width: size, height: size };
-
-            const hitWall = Map1.walls.some(wall =>
-                !(rect.x + rect.width  <= wall.x ||
-                    wall.x + wall.width  <= rect.x ||
-                    rect.y + rect.height <= wall.y ||
-                    wall.y + wall.height <= rect.y)
-            );
-            if (hitWall) return true;
-
-            const hitBonus = this.gameObjects.some(o =>
-                o.type === 'bonus' &&
-                rect.x < o.x + o.width &&
-                rect.x + rect.width > o.x &&
-                rect.y < o.y + o.height &&
-                rect.y + rect.height > o.y
-            );
-            if (hitBonus) return true;
-
-            // don't spawn in the player place
-            const pb = this.player.bounds;
-            const hitPlayer =
-                rect.x < pb.x + pb.width &&
-                rect.x + rect.width > pb.x &&
-                rect.y < pb.y + pb.height &&
-                rect.y + rect.height > pb.y;
-
-            return hitPlayer;
-        };
-
-        let x, y, ok = false;
-
-        for (let i = 0; i < attempts; i++) {
-            const dist = radiusMin + Math.random() * (radiusMax - radiusMin);
-            const ang  = Math.random() * Math.PI * 2;
-
-            // place over the player
-            x = Math.round(px + Math.cos(ang) * dist - size / 2);
-            y = Math.round(py + Math.sin(ang) * dist - size / 2);
-
-            x = Math.max(0, Math.min(maxX, x));
-            y = Math.max(0, Math.min(maxY, y));
-
-            if (!isColliding(x, y)) { ok = true; break; }
-        }
-
-        if (!ok) return; // if don't have place for spawn just chancel spawn
-
-
-        const types = ["speed","vision","timeShift"]
-        const type  = types[(Math.random() * types.length) | 0];
-
-        const bonus = new BonusBox(x, y, size, type, gameContainer);
-        gameObjects.push(bonus);
+    rebuildBonuses(map) {
+        console.log('[bonus] sync', map);
+        this.gameObjects = this.gameObjects.filter(o => {
+            if (o.type === 'bonus') { o.remove?.(); return false; }
+            return true;
+        });
+        Object.values(map).forEach(b => this.createBonusFromServer(b));
     }
 
+    createBonusFromServer(b) {
+        console.log('[bonus] spawn', b)
+        const bonus = new BonusBox(b.x, b.y, b.size, b.type, this.gameContainer, b.id);
+        this.gameObjects.push(bonus);
+    }
 
+    removeBonusById(id) {
+        console.log('[bonus] remove', id);
+        this.gameObjects = this.gameObjects.filter(o => {
+            if (o.type === 'bonus' && o.id === id) { o.remove?.(); return false; }
+            return true;
+        });
+    }
 
     castRay(x, y, angle, maxLength) {
         const dx = Math.cos(angle);
@@ -229,8 +190,7 @@ export default class Game {
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
         sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.element.style.width, this.player.element.style.height, this.player.element.style.backgroundPosition);
 
-        this.handleBonusPickup()
-        this.updateBonusSpawn(this.delta);
+        this.handleBonusPickup();
 
         // Update other players from the server
         const players = getPlayers();
@@ -282,7 +242,7 @@ export default class Game {
             if (id === getMyId()) continue;
             const playerData = players[id];
 
-            let otherPlayer = this.gameObjects.find(obj => obj.id === id);
+            let otherPlayer = this.gameObjects.find(obj => obj.type === 'player' && obj.id==id);
             if (!otherPlayer) {
                 otherPlayer = new GameObject(playerData.x, playerData.y, 20, 20, "player", this.gameContainer);
                 otherPlayer.id = id;
@@ -315,37 +275,28 @@ export default class Game {
             if (obj.type !== 'bonus') continue;
 
             const bb = obj.bounds;
-
             const overlap =
                 pb.x < bb.x + bb.width &&
                 pb.x + pb.width > bb.x &&
                 pb.y < bb.y + bb.height &&
                 pb.y + pb.height > bb.y;
 
-            const cx = bb.x + bb.width / 2;
-            const cy = bb.y + bb.height / 2;
-            const centerInside =
-                cx >= pb.x && cx <= pb.x + pb.width &&
-                cy >= pb.y && cy <= pb.y + pb.height;
+            if(!overlap) continue;
 
-            if (overlap || centerInside) {
-                obj.activate(this.player, this);
+            if (obj.__claimed) continue;
 
-                obj.remove?.();
-                this.gameObjects.splice(i, 1);
+            obj.activate(this.player, this);
+
+            obj.__claimed = true;
+
+            if (obj.element && obj.element.isConnected) {
+                obj.element.remove();
+            }
+            if (obj.id) {
+                console.log('[bonus] pickup request', obj.id);
+                pickupBonus(obj.id, p.x + p.width / 2, p.y + p.height / 2);
             }
         }
     }
 
-    updateBonusSpawn(delta) {
-        this._spawnElapsed += delta;
-        if (this._spawnElapsed >= this.spawnEverySec) {
-            const times = Math.floor(this._spawnElapsed / this.spawnEverySec);
-            for (let i = 0; i < times; i++) {
-                this.spawnBonus(this.gameObjects, this.gameContainer);
-                console.log("Bonus Box spawn")
-            }
-            this._spawnElapsed %= this.spawnEverySec;
-        }
-    }
 }

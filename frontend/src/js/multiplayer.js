@@ -6,8 +6,9 @@ import io from 'socket.io-client';
 const socket = io('http://localhost:8080');
 
 let players = {};
+let bonuses = {};
 
-// Socket event handlers
+// Socket event handlers, player
 socket.on('currentPlayers', (serverPlayers) => {
     players = serverPlayers;
     console.log('Current players:', players);
@@ -34,13 +35,41 @@ socket.on('playerDisconnected', (id) => {
     console.log('Player disconnected:', id);
 });
 
+//Sockets for bonus
+socket.on('bonus:list', (list)=>{
+    bonuses={};
+    list.forEach(b=> bonuses[b.id]= b)
+    window.dispatchEvent(new CustomEvent('bonus:sync', {detail:{bonuses}}))
+});
+
+socket.on('bonus:spawn', (b)=>{
+    bonuses[b.id]=b;
+    window.dispatchEvent(new CustomEvent('bonus:spawn', {detail:b}))
+});
+
+socket.on('bonus:remove', (id)=>{
+    delete bonuses[id];
+    window.dispatchEvent(new CustomEvent('bonus:remove', {detail:id}))
+});
+
+socket.on('bonus:picked', ({by, bonusId})=>{
+    delete bonuses[bonusId];
+    window.dispatchEvent(new CustomEvent('bonus:picked', {detail:{id:bonusId, by}}));
+});
+
 // Multiplayer utility functions
 export function sendPlayerMove(x, y, facingAngle = 0,width = 20, height = 20, backgroundPosition = "0 0") {
     socket.emit('move', { x, y, facingAngle, width, height, backgroundPosition });
 }
+export function pickupBonus(bonusId, px, py){
+    socket.emit('bonus:pickup', {bonusId, px, py})
+}
 
 export function getPlayers() {
     return players;
+}
+export function getBonuses() {
+    return bonuses;
 }
 
 export function getMyId() {
