@@ -2,7 +2,7 @@ import { checkCollision } from "./collision.js";
 import GameObject from "./GameObject.js";
 // todo need create array of bonuses
 export default class Player extends GameObject {
-    constructor(x, y, width = 20, height = 20, username = "player", speed = 200, gameContainer, facingAngle = 0, characterIndex= 0, role='hider') {
+    constructor(x, y, width = 20, height = 20, username = "player", speed = 175, gameContainer, facingAngle = 0, characterIndex= 0, role='hider') {
         super(x, y, width, height, "player", gameContainer);
         this.facingAngle = facingAngle;
         this.username = username;

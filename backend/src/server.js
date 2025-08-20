@@ -3,6 +3,10 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import Game from './Game.js';
+import * as bonuses from "./bonuses.js"
+import { walls, WORLD } from "./mapData.js";
+
+const setBonusTime=5000;
 
 const app = express();
 const server = http.createServer(app);
@@ -20,6 +24,22 @@ let games = new Map();
 app.use(cors()); // Enable CORS for all HTTP routes
 app.use(express.json());
 
+setInterval(() => {
+
+    const spawned = bonuses.spawnBonusRandom(io, {
+        world: WORLD,
+        walls,
+        size: 28,
+        attempts: 30,
+        types: ['speed','vision','timeShift'],
+    });
+
+}, setBonusTime);
+
+app.get('/api/hello', (req, res) => {
+    res.json({ message: 'Hello from backend!' });
+});
+
 io.on('connection', (socket) => {
 
     socket.on("hostGame", (data) => {
@@ -27,6 +47,15 @@ io.on('connection', (socket) => {
         const player = game.addPlayer(socket, data.username, true);
         games.set(game.id, game);
         socket.emit("hostGame", { gameId: game.id, player: player });
+    });
+    bonuses.broadcastBonusList(socket);
+
+    socket.on('bonus:pickup', ({ bonusId }) => {
+        if (!bonusId) return;
+        const ok = bonuses.removeBonus(io, bonusId);
+        if (ok) {
+            io.emit('bonus:picked', { by: socket.id, bonusId });
+        }
     });
 
     socket.on("joinGame", (data) => {

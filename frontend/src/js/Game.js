@@ -2,7 +2,7 @@ import {Map1} from "./map.js";
 import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
-import {getPlayers, getMyId, sendPlayerMove} from "./multiplayer.js";
+import {getPlayers, getMyId, sendPlayerMove, pickupBonus} from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./Flashlight.js";
 import "../css/game.css"
@@ -30,6 +30,16 @@ export default class Game extends State {
 
         this.container.appendChild(this.flash.flashlightOverlay);
 
+        window.addEventListener('bonus:sync', (e) => {
+            this.rebuildBonuses(e.detail.bonuses);
+        });
+        window.addEventListener('bonus:spawn', (e) => {
+            this.createBonusFromServer(e.detail);
+        });
+        window.addEventListener('bonus:remove', (e) => {
+            this.removeBonusById(e.detail.id);
+        });
+
     }
     setDarkness(enabled) {
         const overlay = this.flash?.flashlightOverlay;
@@ -53,87 +63,38 @@ export default class Game extends State {
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
         this.gameLoop();
 
-
         this.gameLoop(5);
         this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
-    }
 
+    }
     setPlayerPosition(x, y) {
         this.player.x = x;
         this.player.y = y;
         this.player.updatePosition();
     }
-    spawnBonus(gameObjects, gameContainer) {
-        const size = 28;
-        const radiusMin = 120;
-        const radiusMax = 300;
-        const attempts  = 20;
 
-        //player center
-        const px = this.player.x + this.player.width / 2;
-        const py = this.player.y + this.player.height / 2;
-
-        const maxX = this.container.clientWidth  - size;
-        const maxY = this.container.clientHeight - size;
-
-        const isColliding = (x, y) => {
-            const rect = { x, y, width: size, height: size };
-
-            const hitWall = Map1.walls.some(wall =>
-                !(rect.x + rect.width  <= wall.x ||
-                    wall.x + wall.width  <= rect.x ||
-                    rect.y + rect.height <= wall.y ||
-                    wall.y + wall.height <= rect.y)
-            );
-            if (hitWall) return true;
-
-            const hitBonus = this.gameObjects.some(o =>
-                o.type === 'bonus' &&
-                rect.x < o.x + o.width &&
-                rect.x + rect.width > o.x &&
-                rect.y < o.y + o.height &&
-                rect.y + rect.height > o.y
-            );
-            if (hitBonus) return true;
-
-            // don't spawn in the player place
-            const pb = this.player.bounds;
-            const hitPlayer =
-                rect.x < pb.x + pb.width &&
-                rect.x + rect.width > pb.x &&
-                rect.y < pb.y + pb.height &&
-                rect.y + rect.height > pb.y;
-
-            return hitPlayer;
-        };
-
-        let x, y, ok = false;
-
-        for (let i = 0; i < attempts; i++) {
-            const dist = radiusMin + Math.random() * (radiusMax - radiusMin);
-            const ang  = Math.random() * Math.PI * 2;
-
-            // place over the player
-            x = Math.round(px + Math.cos(ang) * dist - size / 2);
-            y = Math.round(py + Math.sin(ang) * dist - size / 2);
-
-            x = Math.max(0, Math.min(maxX, x));
-            y = Math.max(0, Math.min(maxY, y));
-
-            if (!isColliding(x, y)) { ok = true; break; }
-        }
-
-        if (!ok) return; // if don't have place for spawn just chancel spawn
-
-
-        const types = ["speed","vision","timeShift"]
-        const type  = types[(Math.random() * types.length) | 0];
-
-        const bonus = new BonusBox(x, y, size, type, gameContainer);
-        gameObjects.push(bonus);
+    rebuildBonuses(map) {
+        console.log('[bonus] sync', map);
+        this.gameObjects = this.gameObjects.filter(o => {
+            if (o.type === 'bonus') { o.remove?.(); return false; }
+            return true;
+        });
+        Object.values(map).forEach(b => this.createBonusFromServer(b));
     }
 
+    createBonusFromServer(b) {
+        console.log('[bonus] spawn', b)
+        const bonus = new BonusBox(b.x, b.y, b.size, b.type, this.gameContainer, b.id);
+        this.gameObjects.push(bonus);
+    }
 
+    removeBonusById(id) {
+        console.log('[bonus] remove', id);
+        this.gameObjects = this.gameObjects.filter(o => {
+            if (o.type === 'bonus' && o.id === id) { o.remove?.(); return false; }
+            return true;
+        });
+    }
 
     castRay(x, y, angle, maxLength, self) {
         const dx = Math.cos(angle);
@@ -154,7 +115,6 @@ export default class Game extends State {
                     closest = point;
                     closestDist = dist;
                     closestType = obj.type;
-
                 }
             }
         }
@@ -245,8 +205,7 @@ export default class Game extends State {
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
         sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving);
 
-        this.handleBonusPickup()
-        this.updateBonusSpawn(this.delta);
+        this.handleBonusPickup();
 
         // Update other players from the server
         const players = this.stateManager.players;
@@ -340,30 +299,21 @@ export default class Game extends State {
                 pb.y < bb.y + bb.height &&
                 pb.y + pb.height > bb.y;
 
-            const cx = bb.x + bb.width / 2;
-            const cy = bb.y + bb.height / 2;
-            const centerInside =
-                cx >= pb.x && cx <= pb.x + pb.width &&
-                cy >= pb.y && cy <= pb.y + pb.height;
+            if(!overlap) continue;
 
-            if (overlap || centerInside) {
-                obj.activate(this.player, this);
+            if (obj.__claimed) continue;
 
-                obj.remove?.();
-                this.gameObjects.splice(i, 1);
+            obj.activate(this.player, this);
+
+            obj.__claimed = true;
+
+            if (obj.element && obj.element.isConnected) {
+                obj.element.remove();
             }
-        }
-    }
-
-    updateBonusSpawn(delta) {
-        this._spawnElapsed += delta;
-        if (this._spawnElapsed >= this.spawnEverySec) {
-            const times = Math.floor(this._spawnElapsed / this.spawnEverySec);
-            for (let i = 0; i < times; i++) {
-                this.spawnBonus(this.gameObjects, this.container);
-                console.log("Bonus Box spawn")
+            if (obj.id) {
+                console.log('[bonus] pickup request', obj.id);
+                pickupBonus(obj.id, p.x + p.width / 2, p.y + p.height / 2);
             }
-            this._spawnElapsed %= this.spawnEverySec;
         }
     }
 }

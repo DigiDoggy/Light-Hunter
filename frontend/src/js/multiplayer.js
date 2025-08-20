@@ -6,6 +6,8 @@ import {allMaps} from "./map.js";
 
 export const socket = io('http://localhost:8080');
 
+let players = {};
+let bonuses = {};
 export class SocketHandler {
     constructor(stateManager) {
         this.stateManager = stateManager;
@@ -99,9 +101,41 @@ export class SocketHandler {
     }
 }
 
+//Sockets for bonus
+socket.on('bonus:list', (list)=>{
+    bonuses={};
+    list.forEach(b=> bonuses[b.id]= b)
+    window.dispatchEvent(new CustomEvent('bonus:sync', {detail:{bonuses}}))
+});
+
+socket.on('bonus:spawn', (b)=>{
+    bonuses[b.id]=b;
+    window.dispatchEvent(new CustomEvent('bonus:spawn', {detail:b}))
+});
+
+socket.on('bonus:remove', (id)=>{
+    delete bonuses[id];
+    window.dispatchEvent(new CustomEvent('bonus:remove', {detail:id}))
+});
+
+socket.on('bonus:picked', ({by, bonusId})=>{
+    delete bonuses[bonusId];
+    window.dispatchEvent(new CustomEvent('bonus:picked', {detail:{id:bonusId, by}}));
+});
+
 // Multiplayer utility functions
-export function sendPlayerMove(x, y, facingAngle, isMoving) {
-    socket.emit('move', { x, y, facingAngle, isMoving });
+export function sendPlayerMove(x, y, facingAngle = 0,width = 20, height = 20, backgroundPosition = "0 0") {
+    socket.emit('move', { x, y, facingAngle, width, height, backgroundPosition });
+}
+export function pickupBonus(bonusId, px, py){
+    socket.emit('bonus:pickup', {bonusId, px, py})
+}
+
+export function getPlayers() {
+    return players;
+}
+export function getBonuses() {
+    return bonuses;
 }
 
 export function getMyId() {
@@ -110,10 +144,6 @@ export function getMyId() {
 
 export function hostGame(username) {
     socket.emit("hostGame", { username });
-}
-
-export function getPlayers() {
-    socket.emit("getPlayers");
 }
 
 export function updateReadyStatus(status) {

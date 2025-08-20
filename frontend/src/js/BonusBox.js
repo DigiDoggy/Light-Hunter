@@ -1,10 +1,11 @@
 import GameObject from "./GameObject.js";
 
 export default class BonusBox extends GameObject {
-    constructor(x, y, size = 28, bonusType, gameContainer) {
+    constructor(x, y, size = 28, bonusType, gameContainer, id=null) {
         super(x, y, size, size, "bonus", gameContainer);
         this.bonusType = bonusType;
         this.solid = false;
+        this.id=id;
         this.element.classList.add(`bonus--${bonusType}`);
         this.element.style.zIndex = "20";
     }
@@ -14,7 +15,7 @@ export default class BonusBox extends GameObject {
             duration: 10_000,
             apply(player) {
                 if (player._baseSpeed == null) player._baseSpeed = player.speed;
-                player.speed = player._baseSpeed + 50;
+                player.speed = player._baseSpeed + 100;
                 player.element?.classList.add("buff-speed");
             },
             revert(player) {
@@ -42,7 +43,7 @@ export default class BonusBox extends GameObject {
                 //todo sound for pickup bonus
                 //game?.sound?.palay?.('some')
                 // some broadCast
-                //game?.broadcast?.(`${player.name} changed timer for ${delta > 0 ? '+' : ''}${Math.round(delta/1000)}с`);
+                //game?.broadcast?.(`${player.name} changed timer for ${delta > 0 ? '+' : ''}${Math.round(delta/1000)}`);
             }
         }
     };
@@ -74,4 +75,3 @@ export default class BonusBox extends GameObject {
     }
 
 }
-
