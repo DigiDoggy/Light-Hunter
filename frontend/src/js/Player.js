@@ -2,13 +2,14 @@ import { checkCollision } from "./collision.js";
 import GameObject from "./GameObject.js";
 // todo need create array of bonuses
 export default class Player extends GameObject {
-    constructor(x, y, width = 20, height = 20, name = "player", role,speed = 200, gameContainer, facingAngle = 0, characterIndex= 0) {
+    constructor(x, y, width = 20, height = 20, username = "player", speed = 200, gameContainer, facingAngle = 0, characterIndex= 0, role='hider') {
         super(x, y, width, height, "player", gameContainer);
         this.facingAngle = facingAngle;
-        this.name = name;
+        this.username = username;
         this.baseSpeed= speed;
-        this.role=role;
         this.speed = speed;
+        this.isMoving = false;
+        this.role = role;
         this.animationTimer = 0;
         this.currentFrame = 0;
         this.characterIndex= characterIndex;
@@ -43,7 +44,7 @@ export default class Player extends GameObject {
         if (keys['KeyW']) move += 1;
         if (keys['KeyS']) move -= 1;
 
-        const isMoving = move !== 0;
+        this.isMoving = move !== 0;
 
         if (keys['KeyA']) this.facingAngle -= rotationSpeed * deltaTime;
         if (keys['KeyD']) this.facingAngle += rotationSpeed * deltaTime;
@@ -88,8 +89,11 @@ export default class Player extends GameObject {
         const frameIndex = 1;
 
         this.updateSkinFrame(direction, frameIndex);
+        this.animate(deltaTime, frameDuration, direction);
+    }
 
-        if (isMoving) {
+    animate(deltaTime, frameDuration = 200, direction) {
+        if (this.isMoving) {
             this.animationTimer += deltaTime * 1000;
 
             if (this.animationTimer >= frameDuration) {

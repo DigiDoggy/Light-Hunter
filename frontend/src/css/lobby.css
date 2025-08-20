@@ -1,0 +1,146 @@
+#lobbyContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle,rgba(207, 207, 207, 1) 15%, rgba(110, 110, 110, 1) 46%, rgba(74, 25, 25, 1) 100%);
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+
+    button {
+        margin-top: 10px;
+    }
+
+    button:hover {
+        cursor: pointer;
+        background-color: lightgray;
+    }
+
+    .lobby {
+        position: relative;
+        width: 60%;
+        height: 60%;
+    }
+
+    p {
+        font-size: 22px;
+        margin: auto;
+    }
+}
+
+.skin {
+    width: 32px;
+    height: 48px;
+    background-image: url('../assets/skins/player1/skins.png');
+    background-size: 384px 384px;
+    image-rendering: pixelated;
+    background-repeat: no-repeat;
+    border: 2px solid black;
+    background-color: white;
+}
+
+.skin-container {
+    position: absolute;
+    left: 0;
+    padding: 0 30px 30px 30px;
+    /*margin-left: 30px;*/
+
+    .skin-selector-button {
+        width: 32px;
+        height: 48px;
+        background-image: url('../assets/skins/player1/skins.png');
+        background-size: 384px 384px;
+        image-rendering: pixelated;
+        background-repeat: no-repeat;
+        border: 2px solid black;
+        background-color: white;
+    }
+
+    .skin-selector-button:hover {
+        background-color: lightgray;
+        cursor: pointer;
+    }
+
+    .select-skin {
+        margin: 5px;
+    }
+
+    .skin-selector {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+    }
+
+    .skin-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+.player-list-container {
+    position: absolute;
+    right: 0;
+    padding: 0 30px 30px 30px;
+    text-align: left;
+
+    .player-list-item {
+        margin-top: 5px;
+        display: flex;
+        flex-direction: row;
+    }
+}
+
+.ready-container {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    padding: 0 30px 30px 30px;
+
+    .ready-button {
+        width: 200px;
+        height: 80px;
+    }
+
+    .ready {
+        background-color: lightgreen;
+    }
+}
+
+.map-container {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    padding: 0 30px 30px 30px;
+
+    .open-map-selector-button {
+        /*width: 12px;*/
+        /*height: 80px;*/
+    }
+
+    .map-selector {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+    }
+}
+
+.map {
+    width: 256px;
+    height: 256px;
+    background-size: 256px 256px;
+    background-repeat: no-repeat;
+    border: 2px solid black;
+}
+
+.map:hover {
+    opacity: 0.8;
+}
+
+
+
