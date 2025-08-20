@@ -1,0 +1,73 @@
+export default class State {
+    constructor(stateManager, rootContainer, socket) {
+        this.stateManager = stateManager;
+        this.rootContainer = rootContainer;
+        this.socket = socket;
+        this.container = null;
+        this.eventListeners = [];
+        this.socketListeners = [];
+        this.timeouts = [];
+        this.intervals = [];
+        this.animationFrames = [];
+    }
+
+    setupContainer(containerName, classes) {
+        this.container = document.createElement("div");
+        if (containerName) this.container.id = containerName;
+        if (classes) this.container.className = classes;
+        this.rootContainer.appendChild(this.container);
+    }
+
+    addEventListener(element, event, handler, options) {
+        element.addEventListener(event, handler, options);
+        this.eventListeners.push({ element, event, handler, options });
+    }
+
+    onSocket(event, handler) {
+        this.socket.on(event, handler);
+        this.socketListeners.push({ event, handler });
+    }
+
+    requestAnimationFrame(callback) {
+        const id = requestAnimationFrame(callback);
+        this.animationFrames.push(id);
+        return id;
+    }
+
+    setInterval(callback, delay) {
+        const id = setInterval(callback, delay);
+        this.intervals.push(id);
+        return id;
+    }
+
+    setTimeout(callback, delay) {
+        const id = setTimeout(callback, delay);
+        this.timeouts.push(id);
+        return id;
+    }
+
+    cleanup() {
+        this.eventListeners.forEach(({ element, event, handler, options }) => {
+            element.removeEventListener(event, handler, options);
+        })
+        this.eventListeners = [];
+
+        this.socketListeners.forEach(({ event, handler }) => {
+            this.socket.off(event, handler);
+        })
+        this.socketListeners = [];
+
+        this.intervals.forEach(id => clearInterval(id));
+        this.intervals = [];
+
+        this.timeouts.forEach((id) => clearInterval(id));
+        this.timeouts = [];
+
+        this.animationFrames.forEach((id) => cancelAnimationFrame(id));
+        this.animationFrames = [];
+
+        this.onCleanup();
+    }
+
+    onCleanup() {}
+}

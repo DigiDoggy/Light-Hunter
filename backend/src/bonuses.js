@@ -73,7 +73,7 @@ function spawnBonusRandom(io, {
     return null;
 }
 
-module.exports = {
+export {
     getAll,
     spawnBonus,
     removeBonus,

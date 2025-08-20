@@ -1,3 +1,4 @@
 import Game from './Game.js';
+import AppStateManager from "./AppStateManager.js";
 
-new Game();
+const stateManager = new AppStateManager();

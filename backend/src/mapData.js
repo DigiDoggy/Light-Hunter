@@ -1,6 +1,6 @@
-module.exports = {
-    WORLD: { width: 2000, height: 2000 },
-    walls: [
+
+   export const WORLD= { width: 2000, height: 2000 };
+   export const walls= [
         {x: 0, y: 0, width: 2000, height: 84},
         {x: 0, y: 0, width: 32, height: 2000},
         {x: 0, y: 1960, width: 2000, height: 40},
@@ -50,5 +50,4 @@ module.exports = {
         {x: 1408, y: 879, width: 269, height: 75},
         {x: 1544, y: 1065, width: 34, height: 122},
         {x: 1544, y: 1187, width: 308, height: 75},
-    ],
-};
+    ];

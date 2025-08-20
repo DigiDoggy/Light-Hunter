@@ -4,13 +4,17 @@ import Player from "./Player.js";
 import GameObject from "./GameObject.js";
 import {getPlayers, getMyId, sendPlayerMove, pickupBonus} from "./multiplayer.js";
 import Camera from "./Camera.js";
-import Flashlight from "./flashlight.js";
+import Flashlight from "./Flashlight.js";
+import "../css/game.css"
+import State from "./State.js";
 import BonusBox from "./BonusBox.js";
 
-export default class Game {
-    constructor() {
-        this.gameContainer = document.getElementById("gameContainer");
-        this.player = new Player(100, 100, 32, 48, this.gameContainer);
+export default class Game extends State {
+    constructor(stateManager, rootContainer, socket) {
+        super(stateManager, rootContainer, socket);
+        this.setupContainer("gameContainer", "game-container");
+        this.player = new Player(100, 100, 32, 48);
+        this.player.setCharacterIndex(this.stateManager.skinIndex)
         this.player.setRole('seeker')
         this.player.setCharacterIndex(5)
         this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
@@ -27,7 +31,7 @@ export default class Game {
         this.spawnEverySec = 5;
         this._spawnElapsed = 0;
 
-        this.gameContainer.appendChild(this.flash.flashlightOverlay);
+        this.container.appendChild(this.flash.flashlightOverlay);
 
         window.addEventListener('bonus:sync', (e) => {
             this.rebuildBonuses(e.detail.bonuses);
@@ -44,11 +48,11 @@ export default class Game {
     }
     setDarkness(enabled) {
         const overlay = this.flash?.flashlightOverlay;
-        if (!this.gameContainer || !overlay) return;
+        if (!this.container || !overlay) return;
 
         if (enabled) {
             if (!overlay.isConnected) {
-                this.gameContainer.appendChild(overlay);
+                this.container.appendChild(overlay);
             }
         } else {
             if (overlay.isConnected) {
@@ -57,11 +61,21 @@ export default class Game {
         }}
 
     init() {
+        this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
+        this.player.role = this.stateManager.players[getMyId()].role;
         this.createMap()
         this.setupEventListeners();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
+        this.gameLoop();
 
+
+        this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
         this.gameLoop(performance.now());
+    }
+    setPlayerPosition(x, y) {
+        this.player.x = x;
+        this.player.y = y;
+        this.player.updatePosition();
     }
 
     rebuildBonuses(map) {
@@ -87,7 +101,9 @@ export default class Game {
         });
     }
 
-    castRay(x, y, angle, maxLength) {
+
+
+    castRay(x, y, angle, maxLength, self) {
         const dx = Math.cos(angle);
         const dy = Math.sin(angle);
 
@@ -96,7 +112,7 @@ export default class Game {
         let closestType = null;
 
         for (const obj of this.gameObjects) {
-            if (obj.type !== "wall" && obj.type !== "npc") continue;
+            if (obj.type !== "wall" && obj.type !== "player") continue;
 
             const intersections = this.getRayBoxIntersections(x, y, dx, dy, obj);
 
@@ -109,10 +125,10 @@ export default class Game {
                 }
             }
         }
-        const npcThreshold = 150; // adjust as needed
+        const npcThreshold = 150;
+        if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold && self) {
 
-        if (closestType === "npc" && closestDist <= npcThreshold) {
-            alert('npc caught');
+            console.log(closestDist);
 
             console.log('npc caught');
         }
@@ -166,7 +182,7 @@ export default class Game {
 
     createMap() {
         Map1.walls.forEach((wall) => {
-            this.gameObjects.push(new GameObject(wall.x, wall.y, wall.width, wall.height, "wall", this.gameContainer));
+            this.gameObjects.push(new GameObject(wall.x, wall.y, wall.width, wall.height, "wall", this.container));
         })
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
 
@@ -175,6 +191,12 @@ export default class Game {
     setupEventListeners() {
         document.addEventListener("keydown", (e) => this.keys[e.code] = true);
         document.addEventListener("keyup", (e) => this.keys[e.code] = false);
+
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Escape") {
+                this.stateManager.switchState("lobby")
+            }
+        })
     }
 
 
@@ -188,12 +210,12 @@ export default class Game {
 
         // Handle player movement and send updates to the server
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.element.style.width, this.player.element.style.height, this.player.element.style.backgroundPosition);
+        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving);
 
         this.handleBonusPickup();
 
         // Update other players from the server
-        const players = getPlayers();
+        const players = this.stateManager.players;
         this.updateOtherPlayers(players);
 
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
@@ -204,14 +226,15 @@ export default class Game {
     updateFlashlightCone() {
         this.flash.clearCones();
 
-        const addConeForPlayer = (centerX, centerY, direction) => {
+        const addConeForPlayer = (centerX, centerY, direction, role, self) => {
             const coneLength = 220;
-            const coneAngle = Math.PI / 1.2;
+            const coneDivisor = role === "hider" ? 2 : 0.5;
+            const coneAngle = Math.PI / coneDivisor;
             const rayCount = 60;
             const rays = [];
             for (let i = 0; i <= rayCount; i++) {
                 const angle = direction - coneAngle / 2 + (coneAngle * i) / rayCount;
-                const end = this.castRay(centerX, centerY, angle, coneLength);
+                const end = this.castRay(centerX, centerY, angle, coneLength, self);
                 rays.push({ x: end.x, y: end.y, angle: angle });
             }
             rays.sort((a, b) => a.angle - b.angle);
@@ -224,15 +247,15 @@ export default class Game {
 
         const playerCenterX = this.player.x + this.player.width / 2;
         const playerCenterY = this.player.y + this.player.height / 2;
-        addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0);
+        addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, false);
 
-        const players = getPlayers();
+        const players = this.stateManager.players;
         for (const id in players) {
             if (id === getMyId()) continue;
             const p = players[id];
             const centerX = p.x + 10;
             const centerY = p.y + 10;
-            addConeForPlayer(centerX, centerY, p.facingAngle || 0);
+            addConeForPlayer(centerX, centerY, p.facingAngle || 0,p.role, false);
         }
     }
 
@@ -242,18 +265,19 @@ export default class Game {
             if (id === getMyId()) continue;
             const playerData = players[id];
 
-            let otherPlayer = this.gameObjects.find(obj => obj.type === 'player' && obj.id==id);
+            let otherPlayer = this.gameObjects.find(obj => obj.id === id);
             if (!otherPlayer) {
-                otherPlayer = new GameObject(playerData.x, playerData.y, 20, 20, "player", this.gameContainer);
+                console.log("Creating new player object for", playerData);
+                otherPlayer = new Player(playerData.x, playerData.y, 32, 48, playerData.username, undefined, this.container, undefined, playerData.skinIndex, playerData.role);
                 otherPlayer.id = id;
                 this.gameObjects.push(otherPlayer);
             } else {
                 otherPlayer.x = playerData.x;
                 otherPlayer.y = playerData.y;
                 otherPlayer.facingAngle = playerData.facingAngle || 0;
-                otherPlayer.backgroundPosition = playerData.backgroundPosition;
+                otherPlayer.isMoving = playerData.isMoving;
                 otherPlayer.updatePosition();
-                otherPlayer.updateSkinFrame(otherPlayer.getDirectionFromAngle(), 1);
+                otherPlayer.animate(this.delta, undefined, otherPlayer.getDirectionFromAngle());
             }
         }
 
@@ -275,6 +299,7 @@ export default class Game {
             if (obj.type !== 'bonus') continue;
 
             const bb = obj.bounds;
+
             const overlap =
                 pb.x < bb.x + bb.width &&
                 pb.x + pb.width > bb.x &&
@@ -298,5 +323,4 @@ export default class Game {
             }
         }
     }
-
 }
