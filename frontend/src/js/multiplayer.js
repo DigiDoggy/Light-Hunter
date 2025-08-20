@@ -146,10 +146,6 @@ export function hostGame(username) {
     socket.emit("hostGame", { username });
 }
 
-export function getPlayers() {
-    socket.emit("getPlayers");
-}
-
 export function updateReadyStatus(status) {
     socket.emit("updateReadyStatus", status);
 }

@@ -16,12 +16,9 @@ export default class Game extends State {
         this.player = new Player(100, 100, 32, 48);
         this.player.setCharacterIndex(this.stateManager.skinIndex)
         this.player.setRole('seeker')
-        this.player.setCharacterIndex(5)
-        this.npc = new GameObject(300, 300, 20, 20, "npc", this.gameContainer);
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
         this.gameObjects = [];
-        this.gameObjects.push(this.npc);
         this.gridSize = 32;
         this.spatialGrid = [];
         this.keys = {};
@@ -43,8 +40,6 @@ export default class Game extends State {
             this.removeBonusById(e.detail.id);
         });
 
-
-        this.init();
     }
     setDarkness(enabled) {
         const overlay = this.flash?.flashlightOverlay;
@@ -68,9 +63,9 @@ export default class Game extends State {
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
         this.gameLoop();
 
-
+        this.gameLoop(5);
         this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
-        this.gameLoop(performance.now());
+
     }
     setPlayerPosition(x, y) {
         this.player.x = x;
@@ -100,8 +95,6 @@ export default class Game extends State {
             return true;
         });
     }
-
-
 
     castRay(x, y, angle, maxLength, self) {
         const dx = Math.cos(angle);
