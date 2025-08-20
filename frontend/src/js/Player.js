@@ -10,6 +10,7 @@ export default class Player extends GameObject {
         this.speed = speed;
         this.isMoving = false;
         this.role = role;
+        this.solid = true;
         this.animationTimer = 0;
         this.currentFrame = 0;
         this.characterIndex= characterIndex;

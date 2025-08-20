@@ -46,9 +46,13 @@ export default class Game extends State {
         }}
 
     init() {
+        this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
+        this.player.role = this.stateManager.players[getMyId()].role;
         this.createMap()
         this.setupEventListeners();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
+        this.gameLoop();
+
 
         this.gameLoop(5);
         this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
@@ -131,7 +135,7 @@ export default class Game extends State {
 
 
 
-    castRay(x, y, angle, maxLength) {
+    castRay(x, y, angle, maxLength, self) {
         const dx = Math.cos(angle);
         const dy = Math.sin(angle);
 
@@ -140,7 +144,7 @@ export default class Game extends State {
         let closestType = null;
 
         for (const obj of this.gameObjects) {
-            if (obj.type !== "wall" && obj.type !== "npc") continue;
+            if (obj.type !== "wall" && obj.type !== "player") continue;
 
             const intersections = this.getRayBoxIntersections(x, y, dx, dy, obj);
 
@@ -150,13 +154,14 @@ export default class Game extends State {
                     closest = point;
                     closestDist = dist;
                     closestType = obj.type;
+
                 }
             }
         }
-        const npcThreshold = 150; // adjust as needed
+        const npcThreshold = 150;
+        if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold && self) {
 
-        if (closestType === "npc" && closestDist <= npcThreshold) {
-            alert('npc caught');
+            console.log(closestDist);
 
             console.log('npc caught');
         }
@@ -255,14 +260,15 @@ export default class Game extends State {
     updateFlashlightCone() {
         this.flash.clearCones();
 
-        const addConeForPlayer = (centerX, centerY, direction) => {
+        const addConeForPlayer = (centerX, centerY, direction, role, self) => {
             const coneLength = 220;
-            const coneAngle = Math.PI / 1.2;
+            const coneDivisor = role === "hider" ? 2 : 0.5;
+            const coneAngle = Math.PI / coneDivisor;
             const rayCount = 60;
             const rays = [];
             for (let i = 0; i <= rayCount; i++) {
                 const angle = direction - coneAngle / 2 + (coneAngle * i) / rayCount;
-                const end = this.castRay(centerX, centerY, angle, coneLength);
+                const end = this.castRay(centerX, centerY, angle, coneLength, self);
                 rays.push({ x: end.x, y: end.y, angle: angle });
             }
             rays.sort((a, b) => a.angle - b.angle);
@@ -275,7 +281,7 @@ export default class Game extends State {
 
         const playerCenterX = this.player.x + this.player.width / 2;
         const playerCenterY = this.player.y + this.player.height / 2;
-        addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0);
+        addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, false);
 
         const players = this.stateManager.players;
         for (const id in players) {
@@ -283,7 +289,7 @@ export default class Game extends State {
             const p = players[id];
             const centerX = p.x + 10;
             const centerY = p.y + 10;
-            addConeForPlayer(centerX, centerY, p.facingAngle || 0);
+            addConeForPlayer(centerX, centerY, p.facingAngle || 0,p.role, false);
         }
     }
 
