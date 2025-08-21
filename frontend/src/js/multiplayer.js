@@ -124,8 +124,8 @@ socket.on('bonus:picked', ({by, bonusId})=>{
 });
 
 // Multiplayer utility functions
-export function sendPlayerMove(x, y, facingAngle = 0,width = 20, height = 20, backgroundPosition = "0 0") {
-    socket.emit('move', { x, y, facingAngle, width, height, backgroundPosition });
+export function sendPlayerMove(x, y, facingAngle = 0, isMoving = false) {
+    socket.emit('move', { x, y, facingAngle, isMoving });
 }
 export function pickupBonus(bonusId, px, py){
     socket.emit('bonus:pickup', {bonusId, px, py})
