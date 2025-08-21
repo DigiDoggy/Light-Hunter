@@ -1,5 +1,6 @@
 body {
     overflow: hidden;
+    background-color: black;
 }
 
 #flashlight {
@@ -14,6 +15,7 @@ body {
 }
 
 .game-container {
+    box-shadow: 10px 10px 10px black;
     position: relative;
     width: 2000px;
     height: 2000px;
@@ -43,6 +45,7 @@ body {
     /*background: cyan;*/
     /*border: 2px solid green;*/
     box-sizing: border-box;
+
 }
 
 .bonus{

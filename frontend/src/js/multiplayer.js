@@ -39,6 +39,7 @@ class SocketHandler {
             p.y = player.y;
             p.facingAngle = player.facingAngle;
             p.isMoving = player.isMoving;
+            p.flashOn = player.flashOn;
         });
 
         socket.on("hostGame", (data) => {
@@ -132,8 +133,8 @@ socket.on('bonus:picked', ({by, bonusId})=>{
 });
 
 // Multiplayer utility functions
-export function sendPlayerMove(x, y, facingAngle = 0, isMoving = false) {
-    socket.emit('move', { x, y, facingAngle, isMoving });
+export function sendPlayerMove(x, y, facingAngle = 0, isMoving = false, flashOn=true) {
+    socket.emit('move', { x, y, facingAngle, isMoving, flashOn });
 }
 export function pickupBonus(bonusId, px, py){
     socket.emit('bonus:pickup', {bonusId, px, py})

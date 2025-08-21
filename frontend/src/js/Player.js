@@ -16,6 +16,7 @@ export default class Player extends GameObject {
         this.currentFrame = 0;
         this.characterIndex= characterIndex;
         this.effects={};
+        this.flashOn=true;
     }
 
     setRole(role){
@@ -43,6 +44,7 @@ export default class Player extends GameObject {
         let move = 0;
         if (keys['KeyW']) move += 1;
         if (keys['KeyS']) move -= 1;
+
 
         this.isMoving = move !== 0;
 

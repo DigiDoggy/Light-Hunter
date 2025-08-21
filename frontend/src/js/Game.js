@@ -107,26 +107,30 @@ export default class Game extends State {
         let closestType = null;
 
         for (const obj of this.gameObjects) {
-            if (obj.type !== "wall" && obj.type !== "player") continue;
+            if (obj.type !== "wall" && obj.type != 'player') continue;
+
 
             const intersections = this.getRayBoxIntersections(x, y, dx, dy, obj);
 
             for (const point of intersections) {
                 const dist = Math.hypot(point.x - x, point.y - y);
                 if (dist < closestDist) {
-                    closest = point;
                     closestDist = dist;
                     closestType = obj.type;
+                    const npcThreshold = 150;
+                    if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold) {
+
+                        console.log(closestDist);
+
+                        console.log('npc caught');
+                    }
+                    if (obj.type === 'player') continue;
+                    closest = point;
+
                 }
             }
         }
-        const npcThreshold = 150;
-        if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold && self) {
 
-            console.log(closestDist);
-
-            console.log('npc caught');
-        }
 
         return closest;
     }
@@ -191,6 +195,9 @@ export default class Game extends State {
             if (e.code === "Escape") {
                 state.switchState("lobby")
             }
+            if (e.code === "ControlLeft") {
+                this.player.flashOn = !this.player.flashOn;
+            }
         })
     }
 
@@ -205,7 +212,7 @@ export default class Game extends State {
 
         // Handle player movement and send updates to the server
         this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving);
+        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving, this.player.flashOn);
 
         this.handleBonusPickup();
 
@@ -239,18 +246,19 @@ export default class Game extends State {
             }
             this.flash.addCone(points.join(" "));
         };
-
-        const playerCenterX = this.player.x + this.player.width / 2;
-        const playerCenterY = this.player.y + this.player.height / 2;
-        addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, false);
-
+        if (this.player.flashOn) {
+            const playerCenterX = this.player.x + this.player.width / 2;
+            const playerCenterY = this.player.y + this.player.height / 2;
+            addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, false);
+        }
         const players = state.players;
         for (const id in players) {
             if (id === getMyId()) continue;
             const p = players[id];
+            if (!p.flashOn) continue;
             const centerX = p.x + 10;
             const centerY = p.y + 10;
-            addConeForPlayer(centerX, centerY, p.facingAngle || 0,p.role, false);
+            addConeForPlayer(centerX, centerY, p.facingAngle || 0, p.role, false);
         }
     }
 
