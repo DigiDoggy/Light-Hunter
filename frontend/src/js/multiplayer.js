@@ -132,7 +132,7 @@ export function pickupBonus(bonusId, px, py){
 }
 
 export function getPlayers() {
-    return players;
+    socket.emit("getPlayers");
 }
 export function getBonuses() {
     return bonuses;
