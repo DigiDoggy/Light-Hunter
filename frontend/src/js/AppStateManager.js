@@ -2,6 +2,7 @@ import Game from './Game';
 import MainMenu from './MainMenu';
 import Lobby from './Lobby';
 import { Map1, allMaps } from "./map";
+import audio from "./AudioManager.js";
 
 class AppStateManager {
     constructor() {
@@ -51,6 +52,7 @@ class AppStateManager {
 
         const StateClass = this.states[state];
         if (StateClass) {
+            audio.playSound("switchState");
             this.currentState = new StateClass();
             this.currentState.init();
         } else {
