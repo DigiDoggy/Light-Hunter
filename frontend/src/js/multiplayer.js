@@ -92,6 +92,12 @@ export class SocketHandler {
             this.stateManager.error = err;
             console.log(err);
         })
+
+        socket.on("playerCaught", (playerId) => {
+            const player = this.stateManager.players[playerId];
+            if (!player) return;
+            player.isCaught = true;
+        });
     }
 
     onHostJoinResponse(data) {

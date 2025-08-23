@@ -15,6 +15,7 @@ export default class Player {
         this.isMoving = false;
         this.isHost = isHost;
         this.role = 'hider';
+        this.isCaught = false;
         this.skinIndex = this.pickRandomUnusedSkin();
         this.readyStatus = false;
 
