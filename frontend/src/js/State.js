@@ -1,7 +1,9 @@
+import state from "./AppStateManager.js";
+import { socket } from "./multiplayer.js";
+
 export default class State {
-    constructor(stateManager, rootContainer, socket) {
-        this.stateManager = stateManager;
-        this.rootContainer = rootContainer;
+    constructor() {
+        this.rootContainer = state.container;
         this.socket = socket;
         this.container = null;
         this.eventListeners = [];

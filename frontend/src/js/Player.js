@@ -31,8 +31,6 @@ export default class Player extends GameObject {
         this.speed = this.baseSpeed;
     }
 
-    #norm = Math.SQRT1_s2;
-
     handleMovement(keys, delta, spatialGrid, gridSize) {
         // let direction = {x: 0, y: 0};
         const rotationSpeed = 2.5; // radians per second

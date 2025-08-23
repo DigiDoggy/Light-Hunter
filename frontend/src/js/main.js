@@ -1,4 +1,3 @@
-import Game from './Game.js';
-import AppStateManager from "./AppStateManager.js";
+import state from "./AppStateManager.js";
 
-const stateManager = new AppStateManager();
+state.switchState("mainMenu")

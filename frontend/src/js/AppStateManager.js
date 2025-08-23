@@ -1,13 +1,11 @@
 import Game from './Game';
 import MainMenu from './MainMenu';
 import Lobby from './Lobby';
-import { SocketHandler, socket } from "./multiplayer.js"
 import { Map1, allMaps } from "./map";
 
-export default class AppStateManager {
+class AppStateManager {
     constructor() {
         this.currentState = null;
-        this.socketHandler = new SocketHandler(this);
         this.states = {
             mainMenu: MainMenu,
             game: Game,
@@ -28,15 +26,12 @@ export default class AppStateManager {
 
         this.settings = {};
 
-        this.test = false;
-        this.socket = socket;
-
         this.init();
     }
 
     init() {
         this.setGameId(window.location.pathname);
-        this.switchState("mainMenu");
+        // this.switchState("mainMenu");
         // this.switchState("lobby");
         // this.switchState("game")
     }
@@ -56,7 +51,7 @@ export default class AppStateManager {
 
         const StateClass = this.states[state];
         if (StateClass) {
-            this.currentState = new StateClass(this, this.container, socket);
+            this.currentState = new StateClass();
             this.currentState.init();
         } else {
             console.error(`State ${state} not found`);
@@ -64,3 +59,6 @@ export default class AppStateManager {
 
     }
 }
+
+const state = new AppStateManager();
+export default state;
