@@ -9,6 +9,7 @@ import Flashlight from "./Flashlight.js";
 import "../css/game.css"
 import State from "./State.js";
 import BonusBox from "./BonusBox.js";
+import audio from "./AudioManager.js";
 
 export default class Game extends State {
     constructor() {
@@ -57,6 +58,7 @@ export default class Game extends State {
         }}
 
     init() {
+        audio.playSound("gameMusic");
         this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
         this.player.role = state.players[getMyId()].role;
         this.createMap()

@@ -43,6 +43,10 @@ class AudioManager {
                 src: ["src/assets/sounds/hauntedcastle.mp3"],
                 loop: true,
             }),
+            "gameMusic": new Howl({
+                src: [`src/assets/sounds/Memoraphile - Spooky Dungeon.mp3`],
+                loop: true,
+            }),
             "buttonClick1": new Howl({src: ["src/assets/sounds/buttonClick1.wav"]}),
             "buttonClick2": new Howl({src: ["src/assets/sounds/buttonClick2.wav"]}),
             "switchState": new Howl({src: ["src/assets/sounds/switchState.wav"]}),
