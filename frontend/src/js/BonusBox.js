@@ -3,7 +3,7 @@ import audio from "./AudioManager.js";
 
 export default class BonusBox extends GameObject {
     constructor(x, y, size = 28, bonusType, gameContainer, id=null) {
-        super(x, y, size, size, "bonus", gameContainer);
+        super({x, y, width: size, height: size, type: "bonus", gameContainer});
         this.bonusType = bonusType;
         this.solid = false;
         this.id=id;
