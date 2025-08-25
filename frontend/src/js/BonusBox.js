@@ -1,4 +1,5 @@
 import GameObject from "./GameObject.js";
+import audio from "./AudioManager.js";
 
 export default class BonusBox extends GameObject {
     constructor(x, y, size = 28, bonusType, gameContainer, id=null) {
@@ -51,6 +52,8 @@ export default class BonusBox extends GameObject {
     activate(player, game) {
         const def = BonusBox.defs[this.bonusType];
         if (!def) return;
+
+        audio.playSound("bonus");
 
         if (!def.duration || def.duration <= 0) {
             def.apply?.(player, game);
