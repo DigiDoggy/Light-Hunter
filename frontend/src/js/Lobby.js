@@ -1,3 +1,4 @@
+import state from "./AppStateManager.js";
 import { allMaps } from "./map.js";
 import {updateSkin, updateMap, getPlayers, updateReadyStatus} from "./multiplayer.js";
 import "../css/lobby.css";
@@ -11,8 +12,8 @@ const ANIMATION_DIRECTIONS = {
 }
 
 export default class Lobby extends State {
-    constructor(stateManager, rootContainer, socket) {
-        super(stateManager, rootContainer, socket);
+    constructor() {
+        super();
         this.playerList = null;
         this.error = "";
     }
@@ -29,8 +30,8 @@ export default class Lobby extends State {
         this.onSocket("newPlayer", () => this.updatePlayerList());
         this.onSocket("updateSkin", () => this.updatePlayerList());
         this.onSocket("updateReadyStatus", () => this.updatePlayerList());
-        this.onSocket("updateMap", () => this.openMapSelectorButton.style.backgroundImage = `url(${this.stateManager.map.imagePath})`);
-        this.onSocket("startGame", () => this.stateManager.switchState("game"));
+        this.onSocket("updateMap", () => this.openMapSelectorButton.style.backgroundImage = `url(${state.map.imagePath})`);
+        this.onSocket("startGame", () => state.switchState("game"));
     }
 
     render() {
@@ -48,7 +49,7 @@ export default class Lobby extends State {
 
     updatePlayerList() {
         this.playerList.innerHTML = "";
-        for (const [id, player] of Object.entries(this.stateManager.players)) {
+        for (const [id, player] of Object.entries(state.players)) {
             const playerEl = document.createElement("div");
             playerEl.classList.add("player-list-item");
 
@@ -59,7 +60,7 @@ export default class Lobby extends State {
             const playerName = document.createElement("p");
             playerName.textContent = (player.isHost ? "🔌" : "") + player.username + (player.readyStatus === true ? "🟢" : "🔴");
 
-            if (player.username === this.stateManager.username) {
+            if (player.username === state.username) {
                 playerName.style.color = "green";
             }
 
@@ -77,7 +78,7 @@ export default class Lobby extends State {
 
         const openMapSelector = document.createElement("img");
         openMapSelector.className = "open-map-selector-button map";
-        openMapSelector.style.backgroundImage = `url(${this.stateManager.map.imagePath})`;
+        openMapSelector.style.backgroundImage = `url(${state.map.imagePath})`;
         this.addEventListener(openMapSelector, "click", () => {
             this.mapSelector(mapContainer);
         })
@@ -99,7 +100,7 @@ export default class Lobby extends State {
             map.className = "map";
             map.style.backgroundImage = `url(${mapData.imagePath}`;
             this.addEventListener(map, "click", () => {
-                this.stateManager.map = mapData;
+                state.map = mapData;
                 this.openMapSelectorButton.style.backgroundImage = `url(${mapData.imagePath})`;
                 container.removeChild(mapMenu);
                 this.container.removeChild(document.getElementById("darknessOverlay"));
@@ -141,12 +142,12 @@ export default class Lobby extends State {
         readyButton.textContent = "Ready";
 
         this.addEventListener(readyButton, "click", () => {
-            this.stateManager.readyStatus = !this.stateManager.readyStatus;
-            updateReadyStatus(this.stateManager.readyStatus)
+            state.readyStatus = !state.readyStatus;
+            updateReadyStatus(state.readyStatus)
             readyButton.classList.toggle("ready")
 
             // dev
-            // this.stateManager.switchState("game");
+            // state.switchState("game");
         })
 
         readyContainer.appendChild(readyButton);
@@ -174,7 +175,7 @@ export default class Lobby extends State {
         skinSelectorTitle.textContent = "Skin";
         const skinSelectorButton = document.createElement("img");
         skinSelectorButton.className = "skin-selector-button menu-item"
-        this.prepareSkin(skinSelectorButton, 3,this.stateManager.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
+        this.prepareSkin(skinSelectorButton, 3,state.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
 
         this.addEventListener(skinSelectorButton, "click", () => {
             this.renderSkinSelector(skinContainer, skinSelectorButton);
@@ -199,7 +200,7 @@ export default class Lobby extends State {
             skin.className = "skin-selector-button select-skin menu-item";
             this.prepareSkin(skin, 3, i, ANIMATION_DIRECTIONS.FRONT, 1);
             this.addEventListener(skin, "click", () => {
-                this.stateManager.skinIndex = i;
+                state.skinIndex = i;
                 this.prepareSkin(menuButton, 3, i, ANIMATION_DIRECTIONS.FRONT, 1);
                 container.removeChild(skinMenu);
                 this.container.removeChild(document.getElementById("darknessOverlay"));

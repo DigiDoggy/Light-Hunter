@@ -1,12 +1,9 @@
 import State from './State';
 import {hostGame, joinGame} from "./multiplayer.js";
 import "../css/menu.css";
+import state from "./AppStateManager.js";
 
 export default class MainMenu extends State {
-    constructor(stateManager, rootContainer, socket) {
-        super(stateManager, rootContainer, socket);
-    }
-
     init() {
         this.setupContainer("mainMenuContainer");
         this.registerSocketHandlers();
@@ -14,8 +11,8 @@ export default class MainMenu extends State {
     }
 
     registerSocketHandlers() {
-        this.onSocket("hostGame", () => this.stateManager.switchState("lobby"));
-        this.onSocket("joinGame", () => this.stateManager.switchState("lobby"));
+        this.onSocket("hostGame", () => state.switchState("lobby"));
+        this.onSocket("joinGame", () => state.switchState("lobby"));
         this.onSocket("error", (message) => this.error.textContent = message);
     }
 
@@ -31,16 +28,16 @@ export default class MainMenu extends State {
         `;
 
         this.addEventListener(document.getElementById("host"), "click",() => {
-            this.stateManager.isHost = true;
+            state.isHost = true;
             this.gameEntryDialog("host");
         })
 
         this.addEventListener(document.getElementById("join"), "click",() => {
-            this.stateManager.isHost = false;
+            state.isHost = false;
             this.gameEntryDialog("join");
         })
 
-        if (this.stateManager.gameId) {
+        if (state.gameId) {
             this.gameEntryDialog("join")
         }
 
@@ -79,7 +76,7 @@ export default class MainMenu extends State {
             gameId.classList.add("menu-item");
             gameId.type = "text";
             gameId.placeholder = "Game id";
-            gameId.value = this.stateManager.gameId;
+            gameId.value = state.gameId;
             form.appendChild(gameId);
         }
 
@@ -102,7 +99,7 @@ export default class MainMenu extends State {
         const checkedUsername = this.checkUsername(formData.get("username"));
 
         if (checkedUsername) {
-            this.stateManager.username = checkedUsername;
+            state.username = checkedUsername;
             if (mode === "host") {
                 hostGame(checkedUsername);
             } else {

@@ -1,3 +1,4 @@
+import state from "./AppStateManager.js";
 import {Map1} from "./map.js";
 import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
@@ -10,11 +11,11 @@ import State from "./State.js";
 import BonusBox from "./BonusBox.js";
 
 export default class Game extends State {
-    constructor(stateManager, rootContainer, socket) {
-        super(stateManager, rootContainer, socket);
+    constructor() {
+        super();
         this.setupContainer("gameContainer", "game-container");
         this.player = new Player(100, 100, 32, 48);
-        this.player.setCharacterIndex(this.stateManager.skinIndex)
+        this.player.setCharacterIndex(state.skinIndex)
         this.player.setRole('seeker')
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
@@ -56,15 +57,15 @@ export default class Game extends State {
         }}
 
     init() {
-        this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
-        this.player.role = this.stateManager.players[getMyId()].role;
+        this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
+        this.player.role = state.players[getMyId()].role;
         this.createMap()
         this.setupEventListeners();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
         this.gameLoop();
 
         this.gameLoop(5);
-        this.setPlayerPosition(this.stateManager.players[getMyId()].x, this.stateManager.players[getMyId()].y);
+        this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
 
     }
     setPlayerPosition(x, y) {
@@ -187,7 +188,7 @@ export default class Game extends State {
 
         document.addEventListener("keydown", (e) => {
             if (e.code === "Escape") {
-                this.stateManager.switchState("lobby")
+                state.switchState("lobby")
             }
         })
     }
@@ -208,7 +209,7 @@ export default class Game extends State {
         this.handleBonusPickup();
 
         // Update other players from the server
-        const players = this.stateManager.players;
+        const players = state.players;
         this.updateOtherPlayers(players);
 
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
@@ -242,7 +243,7 @@ export default class Game extends State {
         const playerCenterY = this.player.y + this.player.height / 2;
         addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, false);
 
-        const players = this.stateManager.players;
+        const players = state.players;
         for (const id in players) {
             if (id === getMyId()) continue;
             const p = players[id];

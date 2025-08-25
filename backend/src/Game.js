@@ -56,6 +56,13 @@ export default class Game {
             delete this.players[socket.id];
             this.broadcast('playerDisconnected', socket.id);
         });
+
+        socket.on("catch", (playerId) => {
+            const player = this.players[playerId];
+            if (!player) return;
+            player.isCaught = true;
+            this.broadcast("playerCaught", playerId);
+        });
     }
 
     broadcastPlayerList() {

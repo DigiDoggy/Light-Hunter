@@ -2,38 +2,37 @@
 'use strict';
 
 import io from 'socket.io-client';
+import state from "./AppStateManager.js";
 import {allMaps} from "./map.js";
 
 export const socket = io('http://localhost:8080');
 
 let players = {};
 let bonuses = {};
-export class SocketHandler {
-    constructor(stateManager) {
-        this.stateManager = stateManager;
-        this.socket = socket;
 
+class SocketHandler {
+    constructor() {
         this.registerSocketEvents();
     }
 
     registerSocketEvents() {
         socket.on("getPlayers", (players) => {
-            this.stateManager.players = players;
+            state.players = players;
             console.log("getPlayers", players);
         });
 
         socket.on("newPlayer", (player) => {
-            this.stateManager.players[player.id] = player;
+            state.players[player.id] = player;
             console.log('New player joined:', player);
         });
 
         socket.on('playerDisconnected', (id) => {
-            delete this.stateManager.players[id];
+            delete state.players[id];
             console.log('Player disconnected:', id);
         });
 
         socket.on("playerMoved", (player) => {
-            const p = this.stateManager.players[player.id];
+            const p = state.players[player.id];
             if (!p || p.id === socket.id) return;
 
             p.x = player.x;
@@ -56,16 +55,16 @@ export class SocketHandler {
                 console.error(`Map with with id:${mapId} not found`);
                 return;
             }
-            this.stateManager.map = map;
+            state.map = map;
             console.log("map updated", mapId);
         })
 
         socket.on("updateSkin", (player) => {
-            this.stateManager.players[player.id].skinIndex = player.skinIndex;
+            state.players[player.id].skinIndex = player.skinIndex;
         })
 
         socket.on("updateReadyStatus", (player) => {
-            this.stateManager.players[player.id].readyStatus = player.readyStatus;
+            state.players[player.id].readyStatus = player.readyStatus;
             console.log("update ready status:", player);
         })
 
@@ -74,32 +73,41 @@ export class SocketHandler {
             console.log("start game", data);
 
             if (data) {
-                this.stateManager.players = data;
-                console.log("player players", this.stateManager.players);
+                state.players = data;
+                console.log("player players", state.players);
                 console.log("start game with data", data);
 
 
             }
 
-            this.stateManager.gameStatus = "started";
+            state.gameStatus = "started";
 
 
 
-            console.log("start game", this.stateManager.players);
+            console.log("start game", state.players);
         })
 
         socket.on("error", (err) => {
-            this.stateManager.error = err;
+            state.error = err;
             console.log(err);
         })
+
+        socket.on("playerCaught", (playerId) => {
+            const player = state.players[playerId];
+            if (!player) return;
+            player.isCaught = true;
+        });
     }
 
     onHostJoinResponse(data) {
-        this.stateManager.skinIndex = data.player.skinIndex;
-        this.stateManager.setGameId(data.gameId);
+        state.skinIndex = data.player.skinIndex;
+        state.setGameId(data.gameId);
         history.pushState({}, "", data.gameId);
     }
 }
+
+const sock = new SocketHandler();
+export default sock;
 
 //Sockets for bonus
 socket.on('bonus:list', (list)=>{
@@ -124,15 +132,15 @@ socket.on('bonus:picked', ({by, bonusId})=>{
 });
 
 // Multiplayer utility functions
-export function sendPlayerMove(x, y, facingAngle = 0,width = 20, height = 20, backgroundPosition = "0 0") {
-    socket.emit('move', { x, y, facingAngle, width, height, backgroundPosition });
+export function sendPlayerMove(x, y, facingAngle = 0, isMoving = false) {
+    socket.emit('move', { x, y, facingAngle, isMoving });
 }
 export function pickupBonus(bonusId, px, py){
     socket.emit('bonus:pickup', {bonusId, px, py})
 }
 
 export function getPlayers() {
-    return players;
+    socket.emit("getPlayers");
 }
 export function getBonuses() {
     return bonuses;
