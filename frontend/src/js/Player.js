@@ -1,5 +1,6 @@
 import { checkCollision } from "./collision.js";
 import GameObject from "./GameObject.js";
+import audio from "./AudioManager.js";
 // todo need create array of bonuses
 export default class Player extends GameObject {
     constructor(x, y, width = 20, height = 20, username = "player", speed = 175, gameContainer, facingAngle = 0, characterIndex= 0, role='hider') {
@@ -98,6 +99,7 @@ export default class Player extends GameObject {
             if (this.animationTimer >= frameDuration) {
                 this.currentFrame = this.currentFrame === 0 ? 2 : 0;
                 this.animationTimer = 0;
+                audio.playFootstep();
             }
             this.updateSkinFrame(direction, this.currentFrame);
         } else {                    // if not moving, then we use middle picture  from sprite(stay)

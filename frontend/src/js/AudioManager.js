@@ -7,6 +7,8 @@ class AudioManager {
         this.init();
     }
 
+    footsteps = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
+
     playMenuMusic() {
         this.sounds.menuMusic.play();
     }
@@ -18,6 +20,10 @@ class AudioManager {
             return;
         }
         sound.play();
+    }
+
+    playFootstep() {
+        this.playSound(`fs${this.footsteps[Math.floor(Math.random() * this.footsteps.length)]}`);
     }
 
     playButtonClick(type) {
@@ -51,6 +57,10 @@ class AudioManager {
             "buttonClick2": new Howl({src: ["src/assets/sounds/buttonClick2.wav"]}),
             "switchState": new Howl({src: ["src/assets/sounds/switchState.wav"]}),
         };
+
+        for (let i = 0; i < this.footsteps.length; i++) {
+            this.sounds[`fs${i}`] = new Howl({src: [`src/assets/sounds/footsteps/${i}.ogg`]});
+        }
     }
 }
 
