@@ -64,7 +64,6 @@ export default class Game extends State {
         this.createMap()
         this.setupEventListeners();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
-        this.gameLoop();
 
         this.gameLoop(5);
         this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
