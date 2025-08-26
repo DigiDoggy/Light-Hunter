@@ -1,62 +1,111 @@
 class Timer {
-    constructor({io, roomId, toEnd, maxTime = 7 * 6000, updateTimeMS= 250}) {
-        this.io= io;
+    constructor({io,roomId,onTimerEnd,updateEveryMs=259}) {
+        this.io=io;
         this.roomId=roomId;
-        this.toEnd= toEnd;
-        this.maxTime=maxTime;
-        this.updateTimeMs=updateTimeMS
+        this.onTimerEnd= onTimerEnd;
+        this.updateEveryMs=updateEveryMs;
 
-        this.interval=null;
-        this.endAt=null;
-        this.pausedLeft=null;
+        this.interval = null;
+        this.deadlineMs = null;
+        this.pauseLeft = null;
     }
 
-    start(duration){
-        const time =Math.min(duration,this.maxTime);
-
-        this.endAt= Date.now()+ time;
-        this.startTime();
-        this.emitUpdateTime();
+    start(durationMs){
+        this.deadlineMs=Date.now() + durationMs;
+        this.startUpdate();
+        this.emitUpdate();
     }
+
     pause(){
-        if(!this.endAt){
-            return
-        };
-        this.pausedLeft= Math.max(0, this.endAt- Date.now())
-        this.clearUpdateTime();
+        if(!this.deadlineMs) return;
+
+        this.pauseLeft= this.deadlineMs-Date.now();
+        this.stopUpdate();
     }
-    adjust(deltaMs){
-        if(this.endAt){
-            return;
-        };
+
+    resume(){
+        if(this.pauseLeft==null) return;
+        this.deadlineMs= Date.now() + this.pauseLeft;
+        this.pauseLeft=null;
+        this.startUpdate();
+        this.emitUpdate();
+    }
+
+    adjust(picupTimeBonus){
+        if(!this.deadlineMs)return;
 
         const now = Date.now();
-        let remaining = Math.max( 0, this.endAt-now);
-        remaining+=deltaMs
-        remaining= Math.max(0, Math.min(remaining, this.maxTime));
-        this.endAt= now + remaining
+        let remaining = this.deadlineMs-now;
 
-        this.io.to(this.roomId).emit(`time:adjust`,{
-            deltaMs,
+        remaining+=picupTimeBonus;
+        remaining=Math.max(0,remaining);
+
+        if (remaining==0){
+            return this.finish('timeUp')
+        }
+
+        this.deadlineMs=now + remaining;
+
+        this.io.to(this.roomId).emit('timer:adjust',{
+            picupTimeBonus,
             newRemainingMs:remaining
         });
+
+
     }
 
-    startTime(){
-        this.interval = setInterval(()=>
-        this.update,this.updateTimeMs)
+
+    startUpdate() {
+        this.stopUpdate();
+        this.interval= setInterval(()=>
+        this.update(), this.updateEveryMs);
     }
 
-    stopTime(){
+    stopUpdate() {
         if (this.interval) clearInterval(this.interval);
         this.interval=null;
     }
 
-    update(){
+    update() {
         const remaining = this.remaining();
-        if (remaining<=0){
-            return this.finish('time_up')
+        if(remaining<=0){
+            return this.finish('timeUp')
         }
-        this.updateTimeMs(remaining);
+        this.emitUpdate(remaining);
+    }
+
+    emitUpdate(remaining=this.remaining) {
+        this.io.to(this.roomId).emit('timer:update', {
+            serverNow: Date.now(),
+            remaining
+        })
+    }
+
+    remaining(){
+        if(!this.deadlineMs)return 0;
+
+        const now = Date.now();
+
+        const remaining= this.deadlineMs-now;
+
+        if(remaining>0) {
+            return remaining;
+        }else{
+            return 0;
+        }
+    }
+
+    finish(reason) {
+        this.stopUpdate();
+        this.deadlineMs=null;
+        this.pauseLeft=null;
+
+        this.io.to(this.roomId).emit('game:ended', {reason});
+
+        this.onTimerEnd?.(reason);
     }
 }
+
+export default Timer;
+
+
