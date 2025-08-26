@@ -1,4 +1,7 @@
 import Player from "./Player.js";
+import Timer from "./Timer.js";
+
+//todo need import Bonuses, and remove from server
 
 export default class Game {
     players = {};
@@ -7,6 +10,19 @@ export default class Game {
         this.id = crypto.randomUUID().substring(0, 8).toUpperCase(); // todo check for collision
         this.host = hostSocket;
         this.mapId = 0;
+
+        this.timer = new Timer({
+            io: this.io,
+            roomId: this.id,
+            onTimerEnd: (reason) => this.onTimerEnd(reason),
+            updateEveryMs: 250,
+        });
+    }
+
+    onTimerEnd(reason){
+        // handler for end of game
+
+        this.broadcast("Game Over", {reason, players: this.players})
     }
 
     assignRoles() {
@@ -63,16 +79,45 @@ export default class Game {
             player.isCaught = true;
             this.broadcast("playerCaught", playerId);
         });
+
+        socket.on("game:start", ({durationMs}) =>{
+                if(socket.id !==this.host.id)return;
+
+                this.startGame(durationMs);
+            }
+        )
+        socket.on("game:pause", () => {
+            if (socket.id !== this.host.id) return;
+            this.pauseGame(socket.id);
+        });
+
+        socket.on("game:resume", () => {
+            if (socket.id !== this.host.id) return;
+            this.resumeGame(socket.id);
+        });
+
     }
 
     broadcastPlayerList() {
         this.broadcast("getPlayers", this.players);
     }
 
-    startGame() {
+    //setting timer for game
+    startGame(durationMs=5*60000) {
         this.assignRoles();
 
         this.broadcast("startGame", this.players);
+
+        this.timer.start(durationMs)
+    }
+    pauseGame(sockedId){
+        this.timer.pause();
+        //todo need somthing for dashboard on game
+        this.broadcast("dashboard:action", {by:sockedId, action:"pause"})
+    }
+    resumeGame(sockedId){
+        this.timer.resume();
+        this.broadcast("dashboard:action", {by:sockedId, action: "resume game"})
     }
 
     broadcast(message, data) {

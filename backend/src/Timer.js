@@ -74,7 +74,7 @@ class Timer {
         this.emitUpdate(remaining);
     }
 
-    emitUpdate(remaining=this.remaining) {
+    emitUpdate(remaining=this.remaining()) {
         this.io.to(this.roomId).emit('timer:update', {
             serverNow: Date.now(),
             remaining
