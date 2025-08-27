@@ -15,7 +15,7 @@ export default class Game extends State {
     constructor() {
         super();
         this.setupContainer("gameContainer", "game-container");
-        this.player = new Player(100, 100, 32, 48);
+        this.player = new Player({isLocal: true});
         this.player.setCharacterIndex(state.skinIndex)
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
@@ -185,7 +185,7 @@ export default class Game extends State {
 
     createMap() {
         Map1.walls.forEach((wall) => {
-            this.gameObjects.push(new GameObject(wall.x, wall.y, wall.width, wall.height, "wall", this.container));
+            this.gameObjects.push(new GameObject({x: wall.x, y: wall.y, width: wall.width, height: wall.height, type: "wall", gameContainer: this.container}));
         })
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
 
@@ -233,6 +233,9 @@ export default class Game extends State {
             this.updateFlashlightCone();
 
         }
+
+        audio.updatePosition(this.player.x, this.player.y);
+
         requestAnimationFrame((time) => this.gameLoop(time));
     }
 
@@ -282,7 +285,9 @@ export default class Game extends State {
             let otherPlayer = this.gameObjects.find(obj => obj.id === id);
             if (!otherPlayer) {
                 console.log("Creating new player object for", playerData);
-                otherPlayer = new Player(playerData.x, playerData.y, 32, 48, playerData.username, undefined, this.container, undefined, playerData.skinIndex, playerData.role);
+                otherPlayer = new Player({
+                    x: playerData.x, y: playerData.y, width: 32, height: 48, username: playerData.username,
+                    container: this.container, characterIndex: playerData.skinIndex, role: playerData.role});
                 otherPlayer.id = id;
                 this.gameObjects.push(otherPlayer);
             } else {
@@ -291,7 +296,8 @@ export default class Game extends State {
                 otherPlayer.facingAngle = playerData.facingAngle || 0;
                 otherPlayer.isMoving = playerData.isMoving;
                 otherPlayer.updatePosition();
-                otherPlayer.animate(this.delta, undefined, otherPlayer.getDirectionFromAngle());
+                otherPlayer.animate(this.delta, undefined, otherPlayer.getDirectionFromAngle(), this.player.bounds);
+                otherPlayer.playAudio();
             }
         }
 
