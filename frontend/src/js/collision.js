@@ -1,8 +1,9 @@
-export function checkCollision(playerBounds, spatialGrid, gridSize) {
+export function checkCollision(playerBounds, spatialGrid, gridSize,spectator=false) {
     const nearbyCells = getNearbyGridCells(playerBounds, gridSize);
     for (let cellKey of nearbyCells) {
         const obj = spatialGrid[cellKey] || null;
         if (!obj || !obj.solid) continue;
+        if (obj.width != 2000 && obj.height != 2000 && spectator) continue;
         if (rectanglesOverlap(playerBounds, obj.bounds)) {
             return obj;
         }

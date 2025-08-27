@@ -3,6 +3,7 @@ import { allMaps } from "./map.js";
 import {updateSkin, updateMap, getPlayers, updateReadyStatus} from "./multiplayer.js";
 import "../css/lobby.css";
 import State from "./State.js";
+import audio from "./AudioManager.js";
 
 const ANIMATION_DIRECTIONS = {
     FRONT: 0,
@@ -80,6 +81,7 @@ export default class Lobby extends State {
         openMapSelector.className = "open-map-selector-button map";
         openMapSelector.style.backgroundImage = `url(${state.map.imagePath})`;
         this.addEventListener(openMapSelector, "click", () => {
+            audio.playButtonClick();
             this.mapSelector(mapContainer);
         })
         this.openMapSelectorButton = openMapSelector;
@@ -100,6 +102,7 @@ export default class Lobby extends State {
             map.className = "map";
             map.style.backgroundImage = `url(${mapData.imagePath}`;
             this.addEventListener(map, "click", () => {
+                audio.playButtonClick();
                 state.map = mapData;
                 this.openMapSelectorButton.style.backgroundImage = `url(${mapData.imagePath})`;
                 container.removeChild(mapMenu);
@@ -126,6 +129,7 @@ export default class Lobby extends State {
         container.appendChild(frame);
 
         this.addEventListener(darknessOverlay, "click", () => {
+            audio.playButtonClick(2);
             container.removeChild(frame);
             this.container.removeChild(darknessOverlay);
         })
@@ -142,8 +146,10 @@ export default class Lobby extends State {
         readyButton.textContent = "Ready";
 
         this.addEventListener(readyButton, "click", () => {
-            state.readyStatus = !state.readyStatus;
-            updateReadyStatus(state.readyStatus)
+            const ready = !state.readyStatus;
+            audio.playButtonClick(ready ? 1 : 2);
+            state.readyStatus = ready;
+            updateReadyStatus(ready);
             readyButton.classList.toggle("ready")
 
             // dev
@@ -178,6 +184,7 @@ export default class Lobby extends State {
         this.prepareSkin(skinSelectorButton, 3,state.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
 
         this.addEventListener(skinSelectorButton, "click", () => {
+            audio.playButtonClick();
             this.renderSkinSelector(skinContainer, skinSelectorButton);
         });
 
@@ -200,6 +207,7 @@ export default class Lobby extends State {
             skin.className = "skin-selector-button select-skin menu-item";
             this.prepareSkin(skin, 3, i, ANIMATION_DIRECTIONS.FRONT, 1);
             this.addEventListener(skin, "click", () => {
+                audio.playButtonClick();
                 state.skinIndex = i;
                 this.prepareSkin(menuButton, 3, i, ANIMATION_DIRECTIONS.FRONT, 1);
                 container.removeChild(skinMenu);
@@ -232,5 +240,9 @@ export default class Lobby extends State {
         element.style.height = `${frameHeight}px`;
         element.style.backgroundSize = `${mapWidth}px ${mapHeight}px`
         element.style.backgroundPosition = `${x}px ${y}px`;
+    }
+
+    onCleanup() {
+        audio.stopAllSounds();
     }
 }

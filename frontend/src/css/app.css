@@ -6,6 +6,7 @@ body {
     overflow: hidden;
     font-size: 16px;
     font-family: "Consolas", monospace;
+    background: #000;
 }
 
 #app {
@@ -15,7 +16,7 @@ body {
     height: 100%;
     position: absolute;
     color: black;
-    background-color: lightgray;
+    background-color: black;
 }
 
 .error {

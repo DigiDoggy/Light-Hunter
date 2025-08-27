@@ -2,12 +2,14 @@ import State from './State';
 import {hostGame, joinGame} from "./multiplayer.js";
 import "../css/menu.css";
 import state from "./AppStateManager.js";
+import audio from "./AudioManager.js";
 
 export default class MainMenu extends State {
     init() {
         this.setupContainer("mainMenuContainer");
         this.registerSocketHandlers();
         this.render();
+        audio.playMenuMusic();
     }
 
     registerSocketHandlers() {
@@ -28,11 +30,13 @@ export default class MainMenu extends State {
         `;
 
         this.addEventListener(document.getElementById("host"), "click",() => {
+            audio.playButtonClick();
             state.isHost = true;
             this.gameEntryDialog("host");
         })
 
         this.addEventListener(document.getElementById("join"), "click",() => {
+            audio.playButtonClick();
             state.isHost = false;
             this.gameEntryDialog("join");
         })
@@ -53,6 +57,7 @@ export default class MainMenu extends State {
         darknessOverlay.className = "darkness-overlay";
         this.container.appendChild(darknessOverlay);
         this.addEventListener(darknessOverlay, "click", () => {
+            audio.playButtonClick(2);
             this.container.removeChild(frame);
             this.container.removeChild(darknessOverlay);
         });

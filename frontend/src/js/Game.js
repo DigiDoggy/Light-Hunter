@@ -17,15 +17,14 @@ import Flashlight from "./Flashlight.js";
 import "../css/game.css"
 import State from "./State.js";
 import BonusBox from "./BonusBox.js";
+import audio from "./AudioManager.js";
 
 export default class Game extends State {
-
     constructor() {
         super();
         this.setupContainer("gameContainer", "game-container");
         this.player = new Player(100, 100, 32, 48);
         this.player.setCharacterIndex(state.skinIndex)
-        this.player.setRole('seeker')
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
         this.gameObjects = [];
@@ -77,6 +76,10 @@ export default class Game extends State {
         }
     }
 
+    wasCaught(){
+        this.player.type='spectator';
+    }
+
     setDarkness(enabled) {
         const overlay = this.flash?.flashlightOverlay;
         if (!this.container || !overlay) return;
@@ -92,6 +95,7 @@ export default class Game extends State {
         }}
 
     init() {
+        audio.playSound("gameMusic");
         this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
         this.player.role = state.players[getMyId()].role;
         this.createMap()
@@ -167,27 +171,27 @@ export default class Game extends State {
         let closestType = null;
 
         for (const obj of this.gameObjects) {
-            if (obj.type !== "wall" && obj.type !== "player") continue;
+            if (obj.type !== "wall" && obj.type != 'player') continue;
+
 
             const intersections = this.getRayBoxIntersections(x, y, dx, dy, obj);
 
             for (const point of intersections) {
                 const dist = Math.hypot(point.x - x, point.y - y);
                 if (dist < closestDist) {
-                    closest = point;
                     closestDist = dist;
                     closestType = obj.type;
+                    const npcThreshold = 150;
+                    if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold) {
+                        console.log(closestDist);
+                        console.log('npc caught');
+                    }
+                    if (obj.type === 'player') continue;
+                    closest = point;
+
                 }
             }
         }
-        const npcThreshold = 150;
-        if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold && self) {
-
-            console.log(closestDist);
-
-            console.log('npc caught');
-        }
-
         return closest;
     }
 
@@ -244,16 +248,15 @@ export default class Game extends State {
     }
 
     setupEventListeners() {
-        document.addEventListener("keydown", (e) => {
-            this.keys[e.code] = true;
-        });
-        document.addEventListener("keyup", (e) =>{
-            this.keys[e.code] = false;
-        } );
+        document.addEventListener("keydown", (e) => this.keys[e.code] = true);
+        document.addEventListener("keyup", (e) => this.keys[e.code] = false);
 
         document.addEventListener("keydown", (e) => {
             if (e.code === "Escape") {
                 state.switchState("lobby")
+            }
+            if (e.code === "ControlLeft") {
+                this.player.flashOn = !this.player.flashOn;
             }
         })
     }
@@ -268,9 +271,10 @@ export default class Game extends State {
         this.lastTime = time;
 
         // Handle player movement and send updates to the server
+
         if(this.status==='running'){
             this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-            sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving);
+            sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving, this.player.flashOn);
 
             this.handleBonusPickup();
         }else{
@@ -284,7 +288,14 @@ export default class Game extends State {
         this.updateOtherPlayers(players);
 
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
-        this.updateFlashlightCone();
+        if (this.player.type === "spectator") {
+            this.flash.flashlightOverlay.style.opacity=0;
+            this.player.flashOn = false;
+        }
+        else {
+            this.updateFlashlightCone();
+
+        }
         requestAnimationFrame((time) => this.gameLoop(time));
     }
 
@@ -309,18 +320,19 @@ export default class Game extends State {
             }
             this.flash.addCone(points.join(" "));
         };
-
-        const playerCenterX = this.player.x + this.player.width / 2;
-        const playerCenterY = this.player.y + this.player.height / 2;
-        addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, false);
-
+        if (this.player.flashOn) {
+            const playerCenterX = this.player.x + this.player.width / 2;
+            const playerCenterY = this.player.y + this.player.height / 2;
+            addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, false);
+        }
         const players = state.players;
         for (const id in players) {
             if (id === getMyId()) continue;
             const p = players[id];
+            if (!p.flashOn) continue;
             const centerX = p.x + 10;
             const centerY = p.y + 10;
-            addConeForPlayer(centerX, centerY, p.facingAngle || 0,p.role, false);
+            addConeForPlayer(centerX, centerY, p.facingAngle || 0, p.role, false);
         }
     }
 

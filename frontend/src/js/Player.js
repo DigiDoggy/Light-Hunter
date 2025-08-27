@@ -1,5 +1,6 @@
 import { checkCollision } from "./collision.js";
 import GameObject from "./GameObject.js";
+import audio from "./AudioManager.js";
 // todo need create array of bonuses
 export default class Player extends GameObject {
     constructor(x, y, width = 20, height = 20, username = "player", speed = 175, gameContainer, facingAngle = 0, characterIndex= 0, role='hider') {
@@ -16,6 +17,7 @@ export default class Player extends GameObject {
         this.characterIndex= characterIndex;
         this.effects={};
         this.canControl = true;
+        this.flashOn=true;
     }
 
     setRole(role){
@@ -65,7 +67,7 @@ export default class Player extends GameObject {
             height: this.height,
         };
 
-        const collisionX = checkCollision(playerBoundsX, spatialGrid, gridSize);
+        const collisionX = checkCollision(playerBoundsX, spatialGrid, gridSize, this.type==='spectator');
         if (collisionX) {
             if (moveStepX > 0) this.x = collisionX.bounds.x - this.width;
             else if (moveStepX < 0) this.x = collisionX.bounds.x + collisionX.bounds.width;
@@ -81,7 +83,7 @@ export default class Player extends GameObject {
         };
 
 
-        const collisionY = checkCollision(playerBoundsY, spatialGrid, gridSize);
+        const collisionY = checkCollision(playerBoundsY, spatialGrid, gridSize, this.type==='spectator');
         if (collisionY) {
             if (moveStepY > 0) this.y = collisionY.bounds.y - this.height;
             else if (moveStepY < 0) this.y = collisionY.bounds.y + collisionY.bounds.height;
@@ -105,6 +107,7 @@ export default class Player extends GameObject {
             if (this.animationTimer >= frameDuration) {
                 this.currentFrame = this.currentFrame === 0 ? 2 : 0;
                 this.animationTimer = 0;
+                audio.playFootstep();
             }
             this.updateSkinFrame(direction, this.currentFrame);
         } else {                    // if not moving, then we use middle picture  from sprite(stay)
