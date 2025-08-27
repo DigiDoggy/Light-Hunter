@@ -16,19 +16,58 @@ class SocketHandler {
     }
 
     registerSocketEvents() {
+
+        socket.on('room:init', ({ players, mapId, bonuses: list, timer }) => {
+            state.players = players || {};
+            state.map = allMaps.find(m => m.id === mapId) || state.map;
+            bonuses = {};
+            (list || []).forEach(b => bonuses[b.id] = b);
+
+            if (timer?.remainingMs != null) {
+                state.timer = { serverNow: Date.now(), remainingMs: timer.remainingMs };
+            }
+
+            window.dispatchEvent(
+                new CustomEvent('players:sync', { detail: { players: state.players } }
+                ));
+
+            window.dispatchEvent(
+                new CustomEvent('bonus:sync',   { detail: { bonuses } }
+                ));
+
+            if (timer?.remainingMs != null) {
+                window.dispatchEvent(
+                    new CustomEvent('timer:update', {
+                        detail: { remainingMs: timer.remainingMs, serverNow: Date.now() } }
+                    ));
+            }
+        });
+
+        //players
         socket.on("getPlayers", (players) => {
             state.players = players;
             console.log("getPlayers", players);
+            window.dispatchEvent(
+                new CustomEvent('players:sync', { detail: { players: state.players } }
+                ));
         });
 
         socket.on("newPlayer", (player) => {
             state.players[player.id] = player;
             console.log('New player joined:', player);
+            window.dispatchEvent(
+                new CustomEvent('players:sync', { detail: { players: state.players } }
+                ));
+
         });
 
         socket.on('playerDisconnected', (id) => {
             delete state.players[id];
             console.log('Player disconnected:', id);
+            window.dispatchEvent(
+                new CustomEvent('players:sync', { detail: { players: state.players } }
+                ));
+
         });
 
         socket.on("playerMoved", (player) => {
@@ -76,15 +115,12 @@ class SocketHandler {
                 state.players = data;
                 console.log("player players", state.players);
                 console.log("start game with data", data);
-
-
             }
 
             state.gameStatus = "started";
-
-
-
-            console.log("start game", state.players);
+            window.dispatchEvent(
+                new CustomEvent('players:sync', { detail: { players: state.players } }
+                ));
         })
 
         socket.on("error", (err) => {
@@ -96,6 +132,36 @@ class SocketHandler {
             const player = state.players[playerId];
             if (!player) return;
             player.isCaught = true;
+        });
+
+        //timer/pause/resume
+
+        socket.on('timer:update', ({ serverNow, remainingMs }) => {
+            state.timer = { serverNow, remainingMs };
+            window.dispatchEvent(
+                new CustomEvent('timer:update', { detail: { remainingMs, serverNow }}
+            ));
+        });
+
+        socket.on('timer:adjust', ({ pickupTimeBonus, newRemainingMs }) => {
+            //todo for screen
+        /*    window.dispatchEvent(
+                new CustomEvent('timer:adjust', { detail: { pickupTimeBonus, newRemainingMs }}
+                ));*/
+        });
+
+        socket.on('dashboard:action', ({ by, action }) => {
+            state.isPaused = action === 'pause';
+            window.dispatchEvent(
+                new CustomEvent('hud:banner', { detail: { by, action } }
+                ));
+        });
+
+        socket.on('game:ended', ({ reason }) => {
+            window.dispatchEvent(
+                new CustomEvent('hud:gameover', { detail: { reason }}
+                ));
+            state.gameStatus = 'ended';
         });
     }
 
@@ -170,3 +236,19 @@ export function updateMap(mapId) {
     socket.emit("updateMap", mapId)
 }
 
+export function isHost() {
+    const me = state.players[socket.id];
+    return Boolean(me && me.isHost);
+}
+
+export function hostPauseGame()  {
+    socket.emit('game:pause');
+}
+export function hostResumeGame() {
+    socket.emit('game:resume');
+}
+
+export function isPaused() {
+    console.log("state.isPaused",state.isPaused)
+    return !!state.isPaused;
+}

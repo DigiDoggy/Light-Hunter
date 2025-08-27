@@ -18,6 +18,7 @@ class AppStateManager {
         this.username = null;
         this.skinIndex = null;
         this.readyStatus = false;
+        this.isPaused=false
         this.players = [];
         this.map = Map1;
 

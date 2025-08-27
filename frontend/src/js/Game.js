@@ -3,7 +3,15 @@ import {Map1} from "./map.js";
 import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
-import {getPlayers, getMyId, sendPlayerMove, pickupBonus} from "./multiplayer.js";
+import {
+    getPlayers,
+    getMyId,
+    sendPlayerMove,
+    pickupBonus,
+    isPaused,
+    hostResumeGame,
+    hostPauseGame, isHost
+} from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./Flashlight.js";
 import "../css/game.css"
@@ -11,6 +19,7 @@ import State from "./State.js";
 import BonusBox from "./BonusBox.js";
 
 export default class Game extends State {
+
     constructor() {
         super();
         this.setupContainer("gameContainer", "game-container");
@@ -24,6 +33,7 @@ export default class Game extends State {
         this.spatialGrid = [];
         this.keys = {};
         this.lastTime = performance.now();
+        this.status='running'
 
         //for Bonus Box timing
         this.spawnEverySec = 5;
@@ -40,8 +50,33 @@ export default class Game extends State {
         window.addEventListener('bonus:remove', (e) => {
             this.removeBonusById(e.detail.id);
         });
+        window.addEventListener('hud:banner', (e) => {
+            const { action } = e.detail || {};
+            if (action === 'pause')  this.setStatus('paused');
+            if (action === 'resume') this.setStatus('running');
+        });
 
     }
+
+    setStatus(newStatus) {
+        this.status = newStatus;
+        console.log("GAME STATUS", this.status);
+
+        if (newStatus === "paused") {
+            this.keys = {};
+            if (this.player) {
+                this.player.canControl = false;
+                this.player.isMoving = false;
+                this.player.vx = 0; this.player.vy = 0;
+                this.player.updatePosition?.();
+            }
+        } else if (newStatus === "running") {
+            if (this.player) {
+                this.player.canControl = true;
+            }
+        }
+    }
+
     setDarkness(enabled) {
         const overlay = this.flash?.flashlightOverlay;
         if (!this.container || !overlay) return;
@@ -61,8 +96,8 @@ export default class Game extends State {
         this.player.role = state.players[getMyId()].role;
         this.createMap()
         this.setupEventListeners();
+        this.setupPauseHotkey();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
-        this.gameLoop();
 
         this.gameLoop(5);
         this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
@@ -81,6 +116,32 @@ export default class Game extends State {
             return true;
         });
         Object.values(map).forEach(b => this.createBonusFromServer(b));
+    }
+
+    setupPauseHotkey() {
+        let lastToggleAt = 0;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code !== 'Space' || e.repeat) return;
+            e.preventDefault();
+
+            const now = performance.now();
+            if (now - lastToggleAt < 250) return;
+            lastToggleAt = now;
+
+            if (!isHost()) {
+                window.dispatchEvent(new CustomEvent('hud:banner', { detail: { action: 'only-host' } }));
+                return;
+            }
+
+            if (isPaused()) {
+                hostResumeGame();
+                this.setStatus("running");
+            } else {
+                hostPauseGame();
+                this.setStatus("paused");
+            }
+        });
     }
 
     createBonusFromServer(b) {
@@ -183,8 +244,12 @@ export default class Game extends State {
     }
 
     setupEventListeners() {
-        document.addEventListener("keydown", (e) => this.keys[e.code] = true);
-        document.addEventListener("keyup", (e) => this.keys[e.code] = false);
+        document.addEventListener("keydown", (e) => {
+            this.keys[e.code] = true;
+        });
+        document.addEventListener("keyup", (e) =>{
+            this.keys[e.code] = false;
+        } );
 
         document.addEventListener("keydown", (e) => {
             if (e.code === "Escape") {
@@ -203,10 +268,16 @@ export default class Game extends State {
         this.lastTime = time;
 
         // Handle player movement and send updates to the server
-        this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-        sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving);
+        if(this.status==='running'){
+            this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
+            sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving);
 
-        this.handleBonusPickup();
+            this.handleBonusPickup();
+        }else{
+            this.player.isMoving = false;
+            this.player.vx = 0; this.player.vy = 0;
+        }
+
 
         // Update other players from the server
         const players = state.players;

@@ -15,6 +15,7 @@ export default class Player extends GameObject {
         this.currentFrame = 0;
         this.characterIndex= characterIndex;
         this.effects={};
+        this.canControl = true;
     }
 
     setRole(role){
@@ -32,6 +33,12 @@ export default class Player extends GameObject {
     }
 
     handleMovement(keys, delta, spatialGrid, gridSize) {
+        if (!this.canControl) {
+            this.isMoving = false;
+            const direction = this.getDirectionFromAngle();
+            this.animate(0, 200, direction);
+            return;
+        }
         // let direction = {x: 0, y: 0};
         const rotationSpeed = 2.5; // radians per second
         const moveSpeed = this.speed;
