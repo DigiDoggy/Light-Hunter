@@ -17,7 +17,6 @@ export default class Game extends State {
         this.setupContainer("gameContainer", "game-container");
         this.player = new Player(100, 100, 32, 48);
         this.player.setCharacterIndex(state.skinIndex)
-        this.player.setRole('seeker')
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
         this.gameObjects = [];
@@ -43,6 +42,11 @@ export default class Game extends State {
         });
 
     }
+
+    wasCaught(){
+        this.player.type='spectator';
+    }
+
     setDarkness(enabled) {
         const overlay = this.flash?.flashlightOverlay;
         if (!this.container || !overlay) return;
@@ -221,7 +225,14 @@ export default class Game extends State {
         this.updateOtherPlayers(players);
 
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
-        this.updateFlashlightCone();
+        if (this.player.type === "spectator") {
+            this.flash.flashlightOverlay.style.opacity=0;
+            this.player.flashOn = false;
+        }
+        else {
+            this.updateFlashlightCone();
+
+        }
         requestAnimationFrame((time) => this.gameLoop(time));
     }
 
