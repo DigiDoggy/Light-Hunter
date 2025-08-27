@@ -15,7 +15,7 @@ export default class Game extends State {
     constructor() {
         super();
         this.setupContainer("gameContainer", "game-container");
-        this.player = new Player({});
+        this.player = new Player({isLocal: true});
         this.player.setCharacterIndex(state.skinIndex)
         this.player.setRole('seeker')
         this.camera = new Camera(0.1);
@@ -215,6 +215,9 @@ export default class Game extends State {
 
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
         this.updateFlashlightCone();
+
+        audio.updatePosition(this.player.x, this.player.y);
+
         requestAnimationFrame((time) => this.gameLoop(time));
     }
 
@@ -274,7 +277,8 @@ export default class Game extends State {
                 otherPlayer.facingAngle = playerData.facingAngle || 0;
                 otherPlayer.isMoving = playerData.isMoving;
                 otherPlayer.updatePosition();
-                otherPlayer.animate(this.delta, undefined, otherPlayer.getDirectionFromAngle());
+                otherPlayer.animate(this.delta, undefined, otherPlayer.getDirectionFromAngle(), this.player.bounds);
+                otherPlayer.playAudio();
             }
         }
 
