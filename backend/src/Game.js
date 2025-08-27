@@ -1,5 +1,7 @@
 import Player from "./Player.js";
 import Timer from "./Timer.js";
+import BonusManager from "./BonusManager.js";
+import { walls, WORLD } from "./mapData.js";
 
 //todo need import Bonuses, and remove from server
 
@@ -10,18 +12,30 @@ export default class Game {
         this.id = crypto.randomUUID().substring(0, 8).toUpperCase(); // todo check for collision
         this.host = hostSocket;
         this.mapId = 0;
+        this.isPaused = false;
 
+        //timer
         this.timer = new Timer({
             io: this.io,
             roomId: this.id,
             onTimerEnd: (reason) => this.onTimerEnd(reason),
             updateEveryMs: 250,
         });
+
+        //bonuses
+        this.bonuses = new BonusManager({
+            game: this,
+            geometry: { world: WORLD, walls },
+            spawnEveryMs: 5000,
+            types: ['speed', 'vision', 'timeShift'],
+            size: 28,
+            attempts: 30,
+        });
     }
 
     onTimerEnd(reason){
         // handler for end of game
-
+        this.bonuses.stop();
         this.broadcast("Game Over", {reason, players: this.players})
     }
 
@@ -51,6 +65,8 @@ export default class Game {
         this.registerSocketHandlers(socket);
         this.broadcast("newPlayer", player);
 
+        this.bonuses.broadcastList(socket);
+
         return player;
     }
 
@@ -59,10 +75,38 @@ export default class Game {
     }
 
     registerSocketHandlers(socket) {
+
+        socket.emit('room:init', {
+            players: this.players,
+            mapId: this.mapId,
+            bonuses: this.bonuses.list(),
+            timer: {
+                remainingMs: this.timer?.remaining?.() ?? 0
+            }
+        });
+
+        socket.on('move', ({ x, y, facingAngle, isMoving }) => {
+            const p = this.players[socket.id];
+            if (!p) return;
+
+            p.x = x;
+            p.y = y;
+            p.facingAngle = facingAngle;
+            p.isMoving = isMoving;
+
+            socket.to(this.id).emit('playerMoved', {
+                id: socket.id, x, y, facingAngle, isMoving
+            });
+        });
+
         socket.on("updateMap", (mapId) => {
             this.mapId = mapId;
             this.broadcast("updateMap", mapId);
         });
+
+        socket.on('bonus:pickup', (payload) =>
+            this.bonuses.handlePickup(socket, payload
+            ));
 
         socket.on("getPlayers", () => {
             socket.emit("getPlayers", this.players);
@@ -107,16 +151,20 @@ export default class Game {
         this.assignRoles();
 
         this.broadcast("startGame", this.players);
-
         this.timer.start(durationMs)
+        this.bonuses.start();
     }
     pauseGame(sockedId){
+        this.isPaused = true;
         this.timer.pause();
+        this.bonuses.stop();
         //todo need somthing for dashboard on game
         this.broadcast("dashboard:action", {by:sockedId, action:"pause"})
     }
     resumeGame(sockedId){
+        this.isPaused = false;
         this.timer.resume();
+        this.bonuses.start();
         this.broadcast("dashboard:action", {by:sockedId, action: "resume game"})
     }
 
