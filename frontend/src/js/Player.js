@@ -4,7 +4,7 @@ import audio from "./AudioManager.js";
 // todo need create array of bonuses
 export default class Player extends GameObject {
     constructor(x, y, width = 20, height = 20, username = "player", speed = 175, gameContainer, facingAngle = 0, characterIndex= 0, role='hider') {
-        super(x, y, width, height, "spectator", gameContainer);
+        super(x, y, width, height, "player", gameContainer);
         this.facingAngle = facingAngle;
         this.username = username;
         this.baseSpeed= speed;
