@@ -1,18 +1,20 @@
 import Player from "./Player.js";
 import Timer from "./Timer.js";
 import BonusManager from "./BonusManager.js";
-import { walls, WORLD } from "./mapData.js";
+import {walls, WORLD} from "./mapData.js";
 
 //todo need import Bonuses, and remove from server
 
 export default class Game {
     players = {};
+
     constructor(io, hostSocket) {
         this.io = io;
         this.id = crypto.randomUUID().substring(0, 8).toUpperCase(); // todo check for collision
         this.host = hostSocket;
         this.mapId = 0;
         this.isPaused = false;
+        this.pauseId = null
 
         //timer
         this.timer = new Timer({
@@ -25,7 +27,7 @@ export default class Game {
         //bonuses
         this.bonuses = new BonusManager({
             game: this,
-            geometry: { world: WORLD, walls },
+            geometry: {world: WORLD, walls},
             spawnEveryMs: 5000,
             types: ['speed', 'vision', 'timeShift'],
             size: 28,
@@ -33,10 +35,10 @@ export default class Game {
         });
     }
 
-    onTimerEnd(reason){
+    onTimerEnd(reason) {
         // handler for end of game
         this.bonuses.stop();
-        this.broadcast("Game Over", {reason, players: this.players})
+        this.broadcast("game:ended", {reason, players: this.players})
     }
 
     assignRoles() {
@@ -48,13 +50,11 @@ export default class Game {
                 player.role = "seeker";
                 player.x = 1900;
                 player.y = 1900;
-            }
-            else {
+            } else {
+                player.role = "hider";
                 player.x = Math.random() * 500 + 100;
                 player.y = Math.random() * 500 + 100;
             }
-            player.x = 100;
-            player.y = 100;
         });
         console.log(this.players);
     }
@@ -78,16 +78,32 @@ export default class Game {
 
     registerSocketHandlers(socket) {
 
+        // Game/map
+        socket.on("updateMap", (mapId) => {
+            this.mapId = mapId;
+            this.broadcast("updateMap", mapId);
+        });
+
         socket.emit('room:init', {
             players: this.players,
             mapId: this.mapId,
             bonuses: this.bonuses.list(),
             timer: {
                 remainingMs: this.timer?.remaining?.() ?? 0
-            }
+            },
+            paused: this.isPaused
         });
 
-        socket.on('move', ({ x, y, facingAngle, isMoving }) => {
+        socket.on("game:start", ({durationMs}) => {
+                if (socket.id !== this.host.id) return;
+
+                this.startGame(durationMs);
+            }
+        )
+
+        //player
+        socket.on('move', ({x, y, facingAngle, isMoving, flashOn}) => {
+            if (this.isPaused) return;
             const p = this.players[socket.id];
             if (!p) return;
 
@@ -95,20 +111,13 @@ export default class Game {
             p.y = y;
             p.facingAngle = facingAngle;
             p.isMoving = isMoving;
+            p.flashOn = !!flashOn;
 
             socket.to(this.id).emit('playerMoved', {
-                id: socket.id, x, y, facingAngle, isMoving
-            });
+                    id: socket.id, x, y, facingAngle, isMoving, flashOn: !!flashOn
+                }
+            );
         });
-
-        socket.on("updateMap", (mapId) => {
-            this.mapId = mapId;
-            this.broadcast("updateMap", mapId);
-        });
-
-        socket.on('bonus:pickup', (payload) =>
-            this.bonuses.handlePickup(socket, payload
-            ));
 
         socket.on("getPlayers", () => {
             socket.emit("getPlayers", this.players);
@@ -117,6 +126,10 @@ export default class Game {
         socket.on('disconnect', () => {
             delete this.players[socket.id];
             this.broadcast('playerDisconnected', socket.id);
+            if (this.isPaused && this.pauseId === socket.id) {
+                this.pauseId = null;
+                this.resumeGame(this.host.id);
+            }
         });
 
         socket.on("catch", (playerId) => {
@@ -126,19 +139,22 @@ export default class Game {
             this.broadcast("playerCaught", playerId);
         });
 
-        socket.on("game:start", ({durationMs}) =>{
-                if(socket.id !==this.host.id)return;
+        socket.on('bonus:pickup', (data) =>
+            this.bonuses.handlePickup(socket, data)
+        );
 
-                this.startGame(durationMs);
-            }
-        )
+        //Time / Pause
+
         socket.on("game:pause", () => {
-            if (socket.id !== this.host.id) return;
+            if (this.isPaused) return;
+            this.pauseId = socket.id;
             this.pauseGame(socket.id);
         });
 
         socket.on("game:resume", () => {
-            if (socket.id !== this.host.id) return;
+            if (!this.isPaused) return;
+            if (socket.id !== this.pauseId) return;
+            this.pauseId = null;
             this.resumeGame(socket.id);
         });
 
@@ -149,25 +165,31 @@ export default class Game {
     }
 
     //setting timer for game
-    startGame(durationMs=5*60000) {
-        this.assignRoles();
 
-        this.broadcast("startGame", this.players);
-        this.timer.start(durationMs)
+    startGame(durationMs = 5 * 60000) {
+        this.assignRoles();
+        this.timer.start(durationMs);
         this.bonuses.start();
+        this.broadcast("startGame", this.players);
     }
-    pauseGame(sockedId){
+
+    pauseGame(byId) {
         this.isPaused = true;
+        const byName = this.players[byId]?.username ?? byId;
         this.timer.pause();
         this.bonuses.stop();
+        console.log(`Paused by ${byName}`)
         //todo need somthing for dashboard on game
-        this.broadcast("dashboard:action", {by:sockedId, action:"pause"})
+        this.broadcast("dashboard:action", {byId, byName, action: "pause"})
     }
-    resumeGame(sockedId){
+
+    resumeGame(byId) {
         this.isPaused = false;
+        const byName = this.players[byId]?.username ?? byId;
         this.timer.resume();
         this.bonuses.start();
-        this.broadcast("dashboard:action", {by:sockedId, action: "resume game"})
+        console.log(`Resumed by ${byName}`)
+        this.broadcast("dashboard:action", {byId, byName, action: "resume"})
     }
 
     broadcast(message, data) {

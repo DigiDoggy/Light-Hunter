@@ -89,6 +89,7 @@ this.interval=null;
     }
 
     handlePickup(socket, { bonusId }) {
+        if (this.game.isPaused) return;
         if (!bonusId) return;
         const bonus = this.bonuses.get(bonusId);
         if (!bonus) return;
@@ -104,7 +105,8 @@ this.interval=null;
     applyEffect(player, bonus) {
         switch (bonus.type) {
             case 'timeShift':
-                this.game.timer.adjust(5000);
+                const deltaMs= (player.role =='seeker')?5000:-5000
+                this.game.timer.adjust(deltaMs);
                 break;
             case 'speed':
                 this.io.to(this.roomId).emit('player:buff', { playerId: player.id ?? player.socket?.id ?? player.socketId ?? player.username, type: 'speed', durationMs: 10000 });

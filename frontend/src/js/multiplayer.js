@@ -7,7 +7,6 @@ import {allMaps} from "./map.js";
 
 export const socket = io('http://localhost:8080');
 
-let players = {};
 let bonuses = {};
 
 class SocketHandler {
@@ -17,11 +16,12 @@ class SocketHandler {
 
     registerSocketEvents() {
 
-        socket.on('room:init', ({ players, mapId, bonuses: list, timer }) => {
+        socket.on('room:init', ({ players, mapId, bonuses: list, timer, paused}) => {
             state.players = players || {};
             state.map = allMaps.find(m => m.id === mapId) || state.map;
             bonuses = {};
             (list || []).forEach(b => bonuses[b.id] = b);
+            state.isPaused = !!paused;
 
             if (timer?.remainingMs != null) {
                 state.timer = { serverNow: Date.now(), remainingMs: timer.remainingMs };
@@ -41,6 +41,10 @@ class SocketHandler {
                         detail: { remainingMs: timer.remainingMs, serverNow: Date.now() } }
                     ));
             }
+            if (paused){
+                window.dispatchEvent(new CustomEvent('hud:banner', { detail: { action: 'pause' } }));
+            }
+
         });
 
         //players
@@ -61,13 +65,17 @@ class SocketHandler {
 
         });
 
-        socket.on('playerDisconnected', (id) => {
-            delete state.players[id];
-            console.log('Player disconnected:', id);
-            window.dispatchEvent(
-                new CustomEvent('players:sync', { detail: { players: state.players } }
-                ));
+        socket.on('playerDisconnected', (payload) => {
+            const { id, username } = (typeof payload === 'string')
+                ? { id: payload, username: state.players?.[payload]?.username }
+                : payload;
 
+            window.dispatchEvent(new CustomEvent('hud:toast', {
+                detail: { title: 'Player left', text: username || id, tone: 'neutral', ttl: 2500 }
+            }));
+
+            delete state.players[id];
+            window.dispatchEvent(new CustomEvent('players:sync', { detail: { players: state.players } }));
         });
 
         socket.on("playerMoved", (player) => {
@@ -109,20 +117,24 @@ class SocketHandler {
         })
 
 
-        socket.on("startGame", (data) => {
-            console.log("start game", data);
+        socket.on('startGame', (data) => {
+            if (data) state.players = data;
+            state.gameStatus = 'started';
+            window.dispatchEvent(new CustomEvent('players:sync', { detail: { players: state.players } }));
 
-            if (data) {
-                state.players = data;
-                console.log("player players", state.players);
-                console.log("start game with data", data);
-            }
+            const seeker = Object.values(state.players || {}).find(p => p.role === 'seeker');
+            window.dispatchEvent(new CustomEvent('hud:toast', {
+                detail: { title: 'Match started!', text: `Seeker: ${seeker?.username || '—'}`, tone: 'info', ttl: 2500 }
+            }));
+        });
 
-            state.gameStatus = "started";
-            window.dispatchEvent(
-                new CustomEvent('players:sync', { detail: { players: state.players } }
-                ));
-        })
+        socket.on('game:ended', ({ reason }) => {
+            window.dispatchEvent(new CustomEvent('hud:gameover', { detail: { reason } }));
+            window.dispatchEvent(new CustomEvent('hud:toast', {
+                detail: { title: 'Match ended', text: reason || '', tone: 'neutral', ttl: 3000 }
+            }));
+            state.gameStatus = 'ended';
+        });
 
         socket.on("error", (err) => {
             state.error = err;
@@ -145,18 +157,37 @@ class SocketHandler {
         });
 
         socket.on('timer:adjust', ({ pickupTimeBonus, newRemainingMs }) => {
-            //todo for screen
-        /*    window.dispatchEvent(
-                new CustomEvent('timer:adjust', { detail: { pickupTimeBonus, newRemainingMs }}
-                ));*/
+            if (typeof pickupTimeBonus === 'number' && pickupTimeBonus !== 0) {
+                const sign = pickupTimeBonus > 0 ? '+' : '−';
+                window.dispatchEvent(new CustomEvent('hud:toast', {
+                    detail: {
+                        title: 'Timer',
+                        text: `${sign}${Math.abs(pickupTimeBonus/1000)}s`,
+                        tone: pickupTimeBonus > 0 ? 'info' : 'danger',
+                        ttl: 1500
+                    }
+                }));
+            }
         });
 
-        socket.on('dashboard:action', ({ by, action }) => {
+        socket.on('dashboard:action', ({ byId, byName, action }) => {
             state.isPaused = action === 'pause';
-            window.dispatchEvent(
-                new CustomEvent('hud:banner', { detail: { by, action } }
-                ));
+
+            window.dispatchEvent(new CustomEvent('hud:banner', {
+                detail: { byId, byName, action }
+            }));
+
+            if (action === 'pause') {
+                window.dispatchEvent(new CustomEvent('hud:toast', {
+                    detail: { title: 'Pause', text: `Paused by: ${byName || playerName(byId)}`, tone: 'warning', ttl: 2500 }
+                }));
+            } else if (action === 'resume') {
+                window.dispatchEvent(new CustomEvent('hud:toast', {
+                    detail: { title: 'Resume', text: `Resumed by: ${byName || playerName(byId)}`, tone: 'success', ttl: 2000 }
+                }));
+            }
         });
+
 
         socket.on('game:ended', ({ reason }) => {
             window.dispatchEvent(
@@ -190,13 +221,33 @@ socket.on('bonus:spawn', (b)=>{
 
 socket.on('bonus:remove', (id)=>{
     delete bonuses[id];
-    window.dispatchEvent(new CustomEvent('bonus:remove', {detail:id}))
+    window.dispatchEvent(new CustomEvent('bonus:remove', { detail: { id } }));
 });
 
-socket.on('bonus:picked', ({by, bonusId})=>{
-    delete bonuses[bonusId];
-    window.dispatchEvent(new CustomEvent('bonus:picked', {detail:{id:bonusId, by}}));
+socket.on('player:buff', ({ playerId, type, durationMs }) => {
+    window.dispatchEvent(new CustomEvent('player:buff', {
+        detail: { playerId, type, durationMs }
+    }));
 });
+
+socket.on('bonus:picked', ({ by, bonusId, type }) => {
+    const local = bonuses[bonusId];
+    delete bonuses[bonusId];
+
+    window.dispatchEvent(new CustomEvent('bonus:picked', {
+        detail: { id: bonusId, by, type, bonus: local }
+    }));
+
+    window.dispatchEvent(new CustomEvent('hud:toast', {
+        detail: {
+            title: 'Bonus',
+            text: `${playerName(by)} picked: ${bonusLabel(type)}`,
+            tone: 'success',
+            ttl: 1800
+        }
+    }));
+});
+
 
 // Multiplayer utility functions
 export function sendPlayerMove(x, y, facingAngle = 0, isMoving = false, flashOn=true) {
@@ -245,11 +296,23 @@ export function isHost() {
 export function hostPauseGame()  {
     socket.emit('game:pause');
 }
-export function hostResumeGame() {
+export function resumeGame() {
     socket.emit('game:resume');
 }
 
 export function isPaused() {
     console.log("state.isPaused",state.isPaused)
     return !!state.isPaused;
+}
+function bonusLabel(type) {
+    switch (type) {
+        case 'speed': return 'Speed';
+        case 'vision': return 'Vision';
+        case 'timeShift': return 'Time';
+        default: return type || 'Bonus';
+    }
+}
+
+function playerName(id) {
+    return state.players?.[id]?.username || id || 'Player';
 }

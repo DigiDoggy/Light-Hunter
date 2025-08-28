@@ -71,3 +71,149 @@ body {
     background-position: center;
 }
 
+/* HUD layout */
+.hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Arial, sans-serif;
+    color: #fff;
+}
+
+.hud__top {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: start;
+    gap: 8px;
+}
+
+.hud__seeker, .hud__timer, .hud__hiders {
+    pointer-events: none;
+}
+
+.hud__seeker-name {
+    background: rgba(0,0,0,.45);
+    padding: 6px 10px;
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    inline-size: max-content;
+}
+
+.hud__timer {
+    position: relative;
+    justify-self: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.hud__toasts.hud__toasts--under-hiders {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: auto;
+    transform: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    z-index: 9999;
+    pointer-events: none;
+}
+
+.hud__timer-text {
+    background: rgba(0,0,0,.6);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    font-size: 18px;
+}
+
+.hud__hiders {
+    justify-self: end;
+    position: relative;
+}
+
+.hud__hiders-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+}
+.hud__hiders-list li {
+    background: rgba(0,0,0,.45);
+    padding: 6px 10px;
+    border-radius: 8px;
+    text-align: right;
+}
+
+/* Message manager pause/restart/winer */
+.hud__center-msg {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -35%);
+    background: rgba(0,0,0,.55);
+    padding: 14px 20px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 280px;
+    pointer-events: none;
+}
+.hud__center-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+.hud__center-sub {
+    font-size: 14px;
+    opacity: .9;
+}
+
+
+.hud__toasts {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 9999;
+}
+
+.hud__toast {
+    min-width: 220px;
+    max-width: 320px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    font-size: 14px;
+    animation: hudToastIn .18s ease-out both;
+    pointer-events: auto;
+}
+
+@keyframes hudToastIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
+.hud__toast-title { font-weight: 700; margin-bottom: 4px; }
+.hud__toast-text { opacity: .9; }
+
+.hud__toast--info { background: rgba(40, 120, 255, 0.85); }
+.hud__toast--success { background: rgba(22, 163, 74, 0.85); }
+.hud__toast--warning { background: rgba(234, 179, 8, 0.9); }
+.hud__toast--neutral { background: rgba(100, 116, 139, 0.85); }
+.hud__toast--danger { background: rgba(244, 63, 94, 0.9); }
+
+

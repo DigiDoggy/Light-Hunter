@@ -9,7 +9,7 @@ import {
     sendPlayerMove,
     pickupBonus,
     isPaused,
-    hostResumeGame,
+    resumeGame,
     hostPauseGame, isHost
 } from "./multiplayer.js";
 import Camera from "./Camera.js";
@@ -18,6 +18,8 @@ import "../css/game.css"
 import State from "./State.js";
 import BonusBox from "./BonusBox.js";
 import audio from "./AudioManager.js";
+import HUD from "./Hud.js";
+import {socket} from "./multiplayer.js";
 
 export default class Game extends State {
     constructor() {
@@ -33,12 +35,50 @@ export default class Game extends State {
         this.keys = {};
         this.lastTime = performance.now();
         this.status='running'
+        this.hud = new HUD(this.gameContainer);
 
         //for Bonus Box timing
-        this.spawnEverySec = 5;
         this._spawnElapsed = 0;
 
         this.container.appendChild(this.flash.flashlightOverlay);
+
+        window.addEventListener('hud:toast', (e) => {
+            this.hud.showToast(e.detail || {});
+        });
+
+        window.addEventListener('bonus:picked', (e) => {
+            const { id, by, type } = e.detail || {};
+            this.removeBonusById(id);
+
+            if (by === getMyId()) {
+                audio.playSound('bonusPickup');
+            }
+        });
+
+        window.addEventListener('player:buff', (e) => {
+            const { playerId, type, durationMs } = e.detail || {};
+            if (playerId !== getMyId()) return;
+
+            const def = BonusBox.defs?.[type];
+            if (!def || !def.apply) return;
+
+            const player = this.player;
+            def.apply(player, this);
+
+            if (def.revert && durationMs > 0) {
+                player.effects ??= {};
+                const prev = player.effects[type];
+                if (prev) {
+                    clearTimeout(prev.timer);
+                    prev.revert?.(player, this);
+                }
+                const timer = setTimeout(() => {
+                    def.revert?.(player, this);
+                    delete player.effects[type];
+                }, durationMs);
+                player.effects[type] = { timer, revert: def.revert };
+            }
+        });
 
         window.addEventListener('bonus:sync', (e) => {
             this.rebuildBonuses(e.detail.bonuses);
@@ -50,12 +90,46 @@ export default class Game extends State {
             this.removeBonusById(e.detail.id);
         });
         window.addEventListener('hud:banner', (e) => {
-            const { action } = e.detail || {};
-            if (action === 'pause')  this.setStatus('paused');
-            if (action === 'resume') this.setStatus('running');
+            const { action, byName } = e.detail || {};
+            if (action === 'pause')  {
+                this.setStatus('paused');
+                this.hud.showCenterMessage('Paused', byName ? `Paused by: ${byName}` : '', 0);
+            }
+            if (action === 'resume') {
+                this.setStatus('running');
+                this.hud.showCenterMessage('Resumed', byName ? `Resumed by: ${byName}` : '', 1500);
+            }
         });
 
+        this.hud = new HUD(this.gameContainer);
+
+        this.hud.setSeeker(this._findSeekerNick(state.players));
+        if (state.timer?.remainingMs != null) {
+            this.hud.setTimer(state.timer.remainingMs);
+        }
+        this.hud.setHiders(this._collectHiders(state.players));
+
+        window.addEventListener('players:sync', (e) => {
+            const players = e.detail.players;
+            this.hud.setSeeker(this._findSeekerNick(players));
+            this.hud.setHiders(this._collectHiders(players));
+        });
+
+        window.addEventListener('timer:update', (e) => {
+            const { remainingMs } = e.detail;
+            this.hud.setTimer(remainingMs);
+        });
     }
+    _findSeekerNick(players = {}) {
+        const seeker = Object.values(players).find(p => p.role === 'seeker');
+        return seeker.username || '';
+    }
+    _collectHiders(players = {}) {
+        return Object.values(players)
+            .filter(p => p.role === "hider")
+            .map(p => p.username);
+    }
+
 
     setStatus(newStatus) {
         this.status = newStatus;
@@ -133,17 +207,11 @@ export default class Game extends State {
             if (now - lastToggleAt < 250) return;
             lastToggleAt = now;
 
-            if (!isHost()) {
-                window.dispatchEvent(new CustomEvent('hud:banner', { detail: { action: 'only-host' } }));
-                return;
-            }
 
-            if (isPaused()) {
-                hostResumeGame();
-                this.setStatus("running");
-            } else {
+            if (isPaused()){
+                resumeGame();
+            }else{
                 hostPauseGame();
-                this.setStatus("paused");
             }
         });
     }
@@ -387,17 +455,18 @@ export default class Game extends State {
 
             if (obj.__claimed) continue;
 
-            obj.activate(this.player, this);
+            // obj.activate(this.player, this);
 
             obj.__claimed = true;
 
-            if (obj.element && obj.element.isConnected) {
-                obj.element.remove();
-            }
+            // if (obj.element && obj.element.isConnected) {
+            // obj.element.remove();
+            // }
             if (obj.id) {
-                console.log('[bonus] pickup request', obj.id);
-                pickupBonus(obj.id, p.x + p.width / 2, p.y + p.height / 2);
+              console.log('[bonus] pickup request', obj.id);
+              pickupBonus(obj.id, p.x + p.width / 2, p.y + p.height / 2);
             }
+
         }
     }
 }
