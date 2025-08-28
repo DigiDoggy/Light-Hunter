@@ -2,6 +2,17 @@ import {Howl, Howler} from "howler";
 
 const PATH = "src/assets/sounds/";
 const footsteps = ["0", "1", "2", "3", "4", "5", "6", "7", "8"];
+const maxDistance = 600;
+const spatialAttrs = {
+    distanceModel: "linear",
+    refDistance: 80,
+    maxDistance: maxDistance,
+    rolloffFactor: 1.0,
+    panningModel: "HRTF",
+    coneInnerAngle: 360,
+    coneOuterAngle: 360,
+    coneOuterGain: 0
+};
 
 const sounds = {
     "menuMusic": new Howl({
@@ -32,17 +43,25 @@ class AudioManager {
         sounds.menuMusic.play();
     }
 
-    playSound(name) {
+    playSound(name, pos) {
         const sound = sounds[name];
         if (!sound) {
             console.error("No sound: ", name);
             return;
         }
+        if (pos) {
+            const id = sound.play();
+            sound.pannerAttr(spatialAttrs, id);
+            sound.pos(pos.x, pos.y, -0.1, id);
+            return;
+        }
         sound.play();
     }
 
-    playFootstep() {
-        this.playSound(`fs${footsteps[Math.floor(Math.random() * footsteps.length)]}`);
+    playFootstep(isLocal, pos) {
+        const sound = `fs${footsteps[Math.floor(Math.random() * footsteps.length)]}`;
+        if (isLocal) this.playSound(sound);
+        else this.playSound(sound, pos);
     }
 
     playButtonClick(type) {
@@ -53,6 +72,10 @@ class AudioManager {
             default:
                 this.playSound("buttonClick1");
         }
+    }
+
+    updatePosition(x, y) {
+        Howler.pos(x, y, 0)
     }
 
     setVolume() {
