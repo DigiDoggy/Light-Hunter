@@ -104,3 +104,36 @@
     object-fit: contain;
 }
 
+.settings {
+    z-index: 10;
+}
+
+.volume-slider {
+    -webkit-appearance: none;
+    width: 200px;
+    height: 10px;
+    background: #f0f0f0;
+    border-radius: 4px;
+    border: 2px solid black;
+}
+
+.volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: darkgray;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid black;
+}
+
+.volume-slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: darkgray;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid black;
+}
+

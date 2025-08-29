@@ -36,7 +36,10 @@ for (let i = 0; i < footsteps.length; i++) {
 
 class AudioManager {
     constructor() {
-        Howler.volume(0.5);
+        if (!localStorage.getItem("volume")) {
+            localStorage.setItem("volume", 100);
+        }
+        this.setVolume(localStorage.getItem("volume"));
     }
 
     playMenuMusic() {
@@ -78,7 +81,10 @@ class AudioManager {
         Howler.pos(x, y, 0)
     }
 
-    setVolume() {
+    setVolume(vol) {
+        if (!vol) return;
+        if (typeof vol === "string") vol = Number(vol) / 100;
+        Howler.volume(vol);
     }
 
     stopAllSounds() {

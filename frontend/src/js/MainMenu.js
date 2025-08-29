@@ -42,6 +42,11 @@ export default class MainMenu extends State {
             this.gameEntryDialog("join");
         })
 
+        this.addEventListener(document.getElementById("settings"), "click",() => {
+            audio.playButtonClick();
+            this.settings();
+        })
+
         this.addEventListener(document.getElementById("guide"), "click",() => {
             audio.playButtonClick();
             this.guide();
@@ -50,8 +55,38 @@ export default class MainMenu extends State {
         if (state.gameId) {
             this.gameEntryDialog("join")
         }
+    }
 
-        // todo settings
+    settings() {
+        const settings = this.popupMenu(this.container, "settings");
+        this.soundSettings(settings);
+    }
+
+    soundSettings(parent) {
+        const title = document.createElement("p");
+        title.classList.add("title");
+        title.textContent = "Volume";
+
+        const slider = document.createElement("input");
+        slider.className = "volume-slider";
+        slider.type = "range";
+        slider.min = 0;
+        slider.max = 100;
+
+        const volume = localStorage.getItem("volume");
+        slider.value = volume;
+
+        const display = document.createElement("p");
+        display.classList.add("volume-display");
+        display.textContent = volume + "%";
+        this.addEventListener(slider, "input", (e) => {
+            const vol = e.target.value;
+            audio.setVolume(vol);
+            display.textContent = vol + "%";
+            localStorage.setItem("volume", vol);
+        });
+
+        parent.append(title, display, slider);
     }
     
     guide() {
