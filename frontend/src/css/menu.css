@@ -1,5 +1,5 @@
 #mainMenuContainer {
-    position: relative;
+    position: absolute;
     width: 100%;
     height: 100%;
     background: radial-gradient(circle,rgba(207, 207, 207, 1) 15%, rgba(110, 110, 110, 1) 46%, rgba(74, 25, 25, 1) 100%);
@@ -39,6 +39,7 @@
 }
 
 .menu-frame {
+    position: absolute;
     display: flex;
     flex-direction: column;
     background-color: darkgray ;
@@ -65,4 +66,41 @@
     width: 100px;
 }
 
+.title {
+    font-size: 22px;
+}
+
+.guide {
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin: 0 auto;
+}
+
+.control-item, .bonus-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.key {
+    padding: 5px 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #666;
+    border-radius: 6px;
+    box-shadow: 2px 4px #333;
+    color: black;
+}
+
+.desc {
+    margin-left: 10px;
+}
+
+.bonus-item img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
 

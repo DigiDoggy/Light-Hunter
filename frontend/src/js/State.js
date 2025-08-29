@@ -1,5 +1,6 @@
 import state from "./AppStateManager.js";
 import { socket } from "./multiplayer.js";
+import audio from "./AudioManager.js";
 
 export default class State {
     constructor() {
@@ -72,4 +73,24 @@ export default class State {
     }
 
     onCleanup() {}
+
+    popupMenu(container, name) {
+        const darknessOverlay = document.createElement("div");
+        darknessOverlay.id = "darknessOverlay";
+        darknessOverlay.className = "darkness-overlay";
+        this.container.appendChild(darknessOverlay);
+
+        const frame = document.createElement("div");
+        frame.id = name;
+        frame.className = `${name} menu-frame`;
+        container.appendChild(frame);
+
+        this.addEventListener(darknessOverlay, "click", () => {
+            audio.playButtonClick(2);
+            container.removeChild(frame);
+            this.container.removeChild(darknessOverlay);
+        })
+
+        return frame;
+    }
 }

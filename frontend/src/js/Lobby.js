@@ -130,26 +130,6 @@ export default class Lobby extends State {
         container.appendChild(mapMenu);
     }
 
-    popupMenu(container, name) {
-        const darknessOverlay = document.createElement("div");
-        darknessOverlay.id = "darknessOverlay";
-        darknessOverlay.className = "darkness-overlay";
-        this.container.appendChild(darknessOverlay);
-
-        const frame = document.createElement("div");
-        frame.id = name;
-        frame.className = `${name} menu-frame`;
-        container.appendChild(frame);
-
-        this.addEventListener(darknessOverlay, "click", () => {
-            audio.playButtonClick(2);
-            container.removeChild(frame);
-            this.container.removeChild(darknessOverlay);
-        })
-
-        return frame;
-    }
-
     renderReadyButton(container) {
         const readyContainer = document.createElement("div");
         readyContainer.classList.add("ready-container");

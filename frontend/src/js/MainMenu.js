@@ -26,6 +26,7 @@ export default class MainMenu extends State {
                 <button id="host" class="menu-item">Host Game</button>
                 <button id="join" class="menu-item">Join Game</button>
                 <button id="settings" class="menu-item">Settings</button>
+                <button id="guide" class="menu-item">Guide</button>
             </div>
         `;
 
@@ -41,26 +42,123 @@ export default class MainMenu extends State {
             this.gameEntryDialog("join");
         })
 
+        this.addEventListener(document.getElementById("guide"), "click",() => {
+            audio.playButtonClick();
+            this.guide();
+        })
+
         if (state.gameId) {
             this.gameEntryDialog("join")
         }
 
         // todo settings
     }
+    
+    guide() {
+        const frame = this.popupMenu(this.container, "guide");
+        this.controls(frame);
+        this.bonuses(frame);
+    }
+
+    controls(parent) {
+        const controls = {
+            move: {
+                primary: ["w", "s"],
+                secondary: ["↑", "↓"],
+            },
+            rotate: {
+                primary: ["a", "d"],
+                secondary: ["←", "→"],
+            },
+            pause: {
+                primary: ["space"],
+            }
+        }
+
+        const container = document.createElement("div");
+        container.classList.add("controls");
+        const title = document.createElement("p");
+        title.className = "title";
+        title.textContent = "Controls";
+        container.append(title);
+
+        for (const a in controls) {
+            const control = document.createElement("div");
+            control.className = "control-item";
+
+            const action = document.createElement("p");
+            action.className = "desc";
+            action.textContent = a;
+            control.append(action);
+
+            controls[a].primary.forEach((btn) => addKey(btn));
+
+            if (controls[a].secondary) {
+                const dash = document.createElement("p");
+                dash.textContent = "/";
+                control.append(dash);
+                controls[a].secondary.forEach((btn) => addKey(btn));
+            }
+
+
+            container.append(control);
+
+            function addKey(button) {
+                const key = document.createElement("span");
+                key.classList.add("key");
+                key.textContent = button;
+                control.append(key);
+            }
+        }
+
+        parent.appendChild(container);
+    }
+
+    bonuses(parent) {
+        const path = "./src/assets/skins/bonusBox/"
+        const bonuses = {
+            reveal: {
+                img: path + "openMap.png",
+                desc: "Reveal the map"
+            },
+            speed: {
+                img: path + "speed.png",
+                desc: "Increased movement speed"
+            },
+            time: {
+                img: path + "timeShift.png",
+                desc: "Extra time"
+            },
+        }
+
+        const container = document.createElement("div");
+        container.classList.add("bonuses");
+        const title = document.createElement("p");
+        title.className = "title";
+        title.textContent = "Bonuses";
+        container.append(title);
+
+        for (const b in bonuses) {
+            const item = document.createElement("div");
+            item.className = "bonus-item";
+
+            const img = document.createElement("img");
+            img.src = bonuses[b].img;
+            img.alt = b;
+
+            const desc = document.createElement("span");
+            desc.className = "desc";
+            desc.textContent = bonuses[b].desc;
+
+            item.append(img, desc);
+            container.append(item);
+        }
+
+        parent.append(container);
+    }
 
     gameEntryDialog(mode) {
-        const frame = document.createElement("div");
-        frame.className = "menu-frame game-entry-dialog";
-
-        const darknessOverlay = document.createElement("div");
-        darknessOverlay.id = "darknessOverlay";
-        darknessOverlay.className = "darkness-overlay";
-        this.container.appendChild(darknessOverlay);
-        this.addEventListener(darknessOverlay, "click", () => {
-            audio.playButtonClick(2);
-            this.container.removeChild(frame);
-            this.container.removeChild(darknessOverlay);
-        });
+        const frame = this.popupMenu(this.container, "game-entry-dialog");
 
         const errorMessage = document.createElement("p")
         errorMessage.className = "error";
