@@ -284,6 +284,10 @@ export function joinGame(gameId, username) {
     socket.emit("joinGame", { gameId, username });
 }
 
+export function leaveGame() {
+    socket.emit("player:leave");
+}
+
 export function updateMap(mapId) {
     socket.emit("updateMap", mapId)
 }

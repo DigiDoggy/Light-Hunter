@@ -123,14 +123,8 @@ export default class Game {
             socket.emit("getPlayers", this.players);
         })
 
-        socket.on('disconnect', () => {
-            delete this.players[socket.id];
-            this.broadcast('playerDisconnected', socket.id);
-            if (this.isPaused && this.pauseId === socket.id) {
-                this.pauseId = null;
-                this.resumeGame(this.host.id);
-            }
-        });
+        socket.on('disconnect', () => this.handleDisconnect(socket));
+        socket.on("player:leave", () => this.handleDisconnect(socket));
 
         socket.on("catch", (playerId) => {
             const player = this.players[playerId];
@@ -158,6 +152,15 @@ export default class Game {
             this.resumeGame(socket.id);
         });
 
+    }
+
+    handleDisconnect(socket) {
+        delete this.players[socket.id];
+        this.broadcast('playerDisconnected', socket.id);
+        if (this.isPaused && this.pauseId === socket.id) {
+            this.pauseId = null;
+            this.resumeGame(this.host.id);
+        }
     }
 
     broadcastPlayerList() {

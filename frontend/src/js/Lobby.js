@@ -1,6 +1,6 @@
 import state from "./AppStateManager.js";
 import { allMaps } from "./map.js";
-import {updateSkin, updateMap, getPlayers, updateReadyStatus} from "./multiplayer.js";
+import {updateSkin, updateMap, getPlayers, updateReadyStatus, leaveGame} from "./multiplayer.js";
 import "../css/lobby.css";
 import State from "./State.js";
 import audio from "./AudioManager.js";
@@ -31,6 +31,7 @@ export default class Lobby extends State {
         this.onSocket("newPlayer", () => this.updatePlayerList());
         this.onSocket("updateSkin", () => this.updatePlayerList());
         this.onSocket("updateReadyStatus", () => this.updatePlayerList());
+        this.onSocket("playerDisconnected", () => this.updatePlayerList());
         this.onSocket("updateMap", () => this.openMapSelectorButton.style.backgroundImage = `url(${state.map.imagePath})`);
         this.onSocket("startGame", () => state.switchState("game"));
     }
@@ -44,8 +45,20 @@ export default class Lobby extends State {
         this.renderPlayerSection(frame);
         this.renderMapSection(frame);
         this.renderReadyButton(frame);
+        this.renderBackButton(this.container);
 
         this.container.appendChild(frame);
+    }
+
+    renderBackButton(container) {
+        const backButton = document.createElement("button");
+        backButton.className = "menu-item menu-back";
+        backButton.textContent = "⬅";
+        this.addEventListener(backButton, "click", () => {
+            leaveGame();
+            state.switchState("mainMenu");
+        })
+        container.appendChild(backButton);
     }
 
     updatePlayerList() {
