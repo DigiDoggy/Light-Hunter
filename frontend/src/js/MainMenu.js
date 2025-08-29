@@ -73,6 +73,7 @@ export default class MainMenu extends State {
         username.classList.add("menu-item");
         username.type = "text";
         username.placeholder = "Username";
+        username.value = state.username ? state.username : "";
         form.appendChild(username);
 
         if (mode === "join") {
