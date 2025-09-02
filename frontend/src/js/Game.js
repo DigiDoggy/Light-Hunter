@@ -19,7 +19,6 @@ import State from "./State.js";
 import BonusBox from "./BonusBox.js";
 import audio from "./AudioManager.js";
 import HUD from "./Hud.js";
-import {socket} from "./multiplayer.js";
 
 export default class Game extends State {
     constructor() {
@@ -60,18 +59,24 @@ export default class Game extends State {
             if (playerId !== getMyId()) return;
 
             const def = BonusBox.defs?.[type];
-            if (!def || !def.apply) return;
+            if (!def) return;
 
             const player = this.player;
-            def.apply(player, this);
+            player.effects ??= {};
+            const prev = player.effects[type];
+
+            if (prev) {
+                clearTimeout(prev.timer);
+                prev.timer = setTimeout(() => {
+                    def.revert?.(player, this);
+                    delete player.effects[type];
+                }, durationMs);
+                return;
+            }
+
+            def.apply?.(player, this);
 
             if (def.revert && durationMs > 0) {
-                player.effects ??= {};
-                const prev = player.effects[type];
-                if (prev) {
-                    clearTimeout(prev.timer);
-                    prev.revert?.(player, this);
-                }
                 const timer = setTimeout(() => {
                     def.revert?.(player, this);
                     delete player.effects[type];
@@ -79,6 +84,7 @@ export default class Game extends State {
                 player.effects[type] = { timer, revert: def.revert };
             }
         });
+
 
         window.addEventListener('bonus:sync', (e) => {
             this.rebuildBonuses(e.detail.bonuses);
