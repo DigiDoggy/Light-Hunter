@@ -405,7 +405,7 @@ export default class Game extends State {
         if (this.player.flashOn) {
             const playerCenterX = this.player.x + this.player.width / 2;
             const playerCenterY = this.player.y + this.player.height / 2;
-            addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, false);
+            addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, true);
         }
         const players = state.players;
         for (const id in players) {
