@@ -251,7 +251,7 @@ export default class Game extends State {
                     closestDist = dist;
                     closestType = obj.type;
                     const npcThreshold = 150;
-                    if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold) {
+                    if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold && self) {
                         playerCaught(obj.id);
                     }
                     if (obj.type === 'player') continue;
@@ -406,8 +406,8 @@ export default class Game extends State {
             if (id === getMyId()) continue;
             const p = players[id];
             if (!p.flashOn) continue;
-            const centerX = p.x + 10;
-            const centerY = p.y + 10;
+            const centerX = p.x;
+            const centerY = p.y;
             addConeForPlayer(centerX, centerY, p.facingAngle || 0, p.role, false);
         }
     }
@@ -461,6 +461,7 @@ export default class Game extends State {
             const obj = this.gameObjects[i];
             if (obj.type !== 'bonus') continue;
 
+
             const bb = obj.bounds;
 
             const overlap =
@@ -472,6 +473,9 @@ export default class Game extends State {
             if(!overlap) continue;
 
             if (obj.__claimed) continue;
+            if (p.type === 'spectator') continue;
+
+            console.log('Picking up bonus', obj);
 
             // obj.activate(this.player, this);
 
