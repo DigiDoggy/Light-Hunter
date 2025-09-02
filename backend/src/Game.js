@@ -14,7 +14,7 @@ export default class Game {
         this.host = hostSocket;
         this.mapId = 0;
         this.isPaused = false;
-        this.pauseId = null
+        this.pauseId = null;
 
         //timer
         this.timer = new Timer({
