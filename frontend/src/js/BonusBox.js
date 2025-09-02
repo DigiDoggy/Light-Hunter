@@ -35,6 +35,7 @@ export default class BonusBox extends GameObject {
         }
     };
 
+
     activate(player, game) {
         const def = BonusBox.defs[this.bonusType];
         if (!def) return;
@@ -47,16 +48,20 @@ export default class BonusBox extends GameObject {
         }
 
         player.effects ??= {};
-
         const prev = player.effects[this.bonusType];
+
         if (prev) {
             clearTimeout(prev.timer);
-            prev.revert?.(player, game);
+            prev.timer = setTimeout(() => {
+                def.revert?.(player, game);
+                delete player.effects[this.bonusType];
+            }, def.duration);
+            return;
         }
 
-        def.apply(player, game);
+        def.apply?.(player, game);
         const timer = setTimeout(() => {
-            def.revert(player, game);
+            def.revert?.(player, game);
             delete player.effects[this.bonusType];
         }, def.duration);
 
