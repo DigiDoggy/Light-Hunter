@@ -203,7 +203,7 @@ export default class Game {
         this.broadcast("dashboard:action", {byId, byName, action: "resume"})
     }
     endGame() {
-        this.onTimerEnd('allCaught');
+        this.onTimerEnd('The seeker has won');
     }
 
     broadcast(message, data) {
