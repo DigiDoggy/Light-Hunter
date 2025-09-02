@@ -145,6 +145,7 @@ class SocketHandler {
             const player = state.players[playerId];
             if (!player) return;
             player.isCaught = true;
+            player.type = 'spectator'
         });
 
         //timer/pause/resume
@@ -283,6 +284,10 @@ export function updateSkin(skinIndex) {
 export function joinGame(gameId, username) {
     socket.emit("joinGame", { gameId, username });
 }
+export function playerCaught(playerId) {
+    socket.emit("catch", playerId);
+}
+
 
 export function leaveGame() {
     socket.emit("player:leave");

@@ -10,7 +10,7 @@ import {
     pickupBonus,
     isPaused,
     resumeGame,
-    hostPauseGame, isHost
+    hostPauseGame, isHost, playerCaught
 } from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./Flashlight.js";
@@ -152,6 +152,9 @@ export default class Game extends State {
 
     wasCaught(){
         this.player.type='spectator';
+        this.player.element.classList.add('spectator');
+        this.hud.showCenterMessage('You were caught!', 'You are now a spectator.', 0);
+        audio.playSound('caught');
     }
 
     setDarkness(enabled) {
@@ -170,16 +173,14 @@ export default class Game extends State {
 
     init() {
         audio.playSound("gameMusic");
+        this.player.id = getMyId();
         this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
-        this.player.role = state.players[getMyId()].role;
         this.createMap()
         this.setupEventListeners();
         this.setupPauseHotkey();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
-
+        this.player.role = state.players[getMyId()].role;
         this.gameLoop(5);
-        this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
-
     }
     setPlayerPosition(x, y) {
         this.player.x = x;
@@ -251,8 +252,7 @@ export default class Game extends State {
                     closestType = obj.type;
                     const npcThreshold = 150;
                     if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold) {
-                        console.log(closestDist);
-                        console.log('npc caught');
+                        playerCaught(obj.id);
                     }
                     if (obj.type === 'player') continue;
                     closest = point;
@@ -356,11 +356,16 @@ export default class Game extends State {
         this.updateOtherPlayers(players);
 
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
+
         if (this.player.type === "spectator") {
             this.flash.flashlightOverlay.style.opacity=0;
             this.player.flashOn = false;
         }
         else {
+            if (players[getMyId()].isCaught)
+            {
+                this.wasCaught();
+            }
             this.updateFlashlightCone();
 
         }
@@ -422,6 +427,13 @@ export default class Game extends State {
                 otherPlayer.id = id;
                 this.gameObjects.push(otherPlayer);
             } else {
+                otherPlayer.isCaught = playerData.isCaught;
+                if (otherPlayer.isCaught)
+                {
+                    otherPlayer.type='spectator';
+                    otherPlayer.element.classList.add('spectator');
+                }
+
                 otherPlayer.x = playerData.x;
                 otherPlayer.y = playerData.y;
                 otherPlayer.facingAngle = playerData.facingAngle || 0;

@@ -20,6 +20,7 @@ export default class Player extends GameObject {
         this.canControl = true;
         this.flashOn=true;
         this.isLocal = isLocal;
+        this.id = null;
     }
 
     setRole(role){
@@ -162,6 +163,7 @@ export default class Player extends GameObject {
 
     //set skins (0-11)
     setCharacterIndex(index){
+
         this.characterIndex=index;
     }
 }

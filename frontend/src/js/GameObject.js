@@ -30,6 +30,7 @@ export default class GameObject {
     }
 
     updatePosition() {
+        this.element.className = this.type;
         this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
     }
 

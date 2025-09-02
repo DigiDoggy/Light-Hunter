@@ -131,6 +131,14 @@ export default class Game {
             if (!player) return;
             player.isCaught = true;
             this.broadcast("playerCaught", playerId);
+            for (const id in this.players) {
+                if (this.players[id].role === "hider" && !this.players[id].isCaught) {
+                    return;
+                }
+            }
+            console.log('end');
+            this.endGame()
+
         });
 
         socket.on('bonus:pickup', (data) =>
@@ -193,6 +201,9 @@ export default class Game {
         this.bonuses.start();
         console.log(`Resumed by ${byName}`)
         this.broadcast("dashboard:action", {byId, byName, action: "resume"})
+    }
+    endGame() {
+        this.onTimerEnd('allCaught');
     }
 
     broadcast(message, data) {

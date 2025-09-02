@@ -33,12 +33,10 @@ body {
     image-rendering: pixelated;
 }
 
-.npc {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background: blue;
+.spectator{
+    background: none !important;
 }
+
 
 .wall {
     position: absolute;
