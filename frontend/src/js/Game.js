@@ -34,18 +34,18 @@ export default class Game extends State {
         this.keys = {};
         this.lastTime = performance.now();
         this.status='running'
-        this.hud = new HUD(this.gameContainer);
+        this.hud = new HUD(this.gameContainer, this);
 
         //for Bonus Box timing
         this._spawnElapsed = 0;
 
         this.container.appendChild(this.flash.flashlightOverlay);
 
-        window.addEventListener('hud:toast', (e) => {
+        this.addEventListener(window, 'hud:toast', (e) => {
             this.hud.showToast(e.detail || {});
         });
 
-        window.addEventListener('bonus:picked', (e) => {
+        this.addEventListener(window, 'bonus:picked', (e) => {
             const { id, by, type } = e.detail || {};
             this.removeBonusById(id);
 
@@ -54,7 +54,7 @@ export default class Game extends State {
             }
         });
 
-        window.addEventListener('player:buff', (e) => {
+        this.addEventListener(window, 'player:buff', (e) => {
             const { playerId, type, durationMs } = e.detail || {};
             if (playerId !== getMyId()) return;
 
@@ -86,16 +86,16 @@ export default class Game extends State {
         });
 
 
-        window.addEventListener('bonus:sync', (e) => {
+        this.addEventListener(window, 'bonus:sync', (e) => {
             this.rebuildBonuses(e.detail.bonuses);
         });
-        window.addEventListener('bonus:spawn', (e) => {
+        this.addEventListener(window, 'bonus:spawn', (e) => {
             this.createBonusFromServer(e.detail);
         });
-        window.addEventListener('bonus:remove', (e) => {
+        this.addEventListener(window, 'bonus:remove', (e) => {
             this.removeBonusById(e.detail.id);
         });
-        window.addEventListener('hud:banner', (e) => {
+        this.addEventListener(window, 'hud:banner', (e) => {
             const { action, byName } = e.detail || {};
             if (action === 'pause')  {
                 this.setStatus('paused');
@@ -107,21 +107,19 @@ export default class Game extends State {
             }
         });
 
-        this.hud = new HUD(this.gameContainer);
-
         this.hud.setSeeker(this._findSeekerNick(state.players));
         if (state.timer?.remainingMs != null) {
             this.hud.setTimer(state.timer.remainingMs);
         }
         this.hud.setHiders(this._collectHiders(state.players));
 
-        window.addEventListener('players:sync', (e) => {
+        this.addEventListener(window, 'players:sync', (e) => {
             const players = e.detail.players;
             this.hud.setSeeker(this._findSeekerNick(players));
             this.hud.setHiders(this._collectHiders(players));
         });
 
-        window.addEventListener('timer:update', (e) => {
+        this.addEventListener(window, 'timer:update', (e) => {
             const { remainingMs } = e.detail;
             this.hud.setTimer(remainingMs);
         });
@@ -141,7 +139,7 @@ export default class Game extends State {
         this.status = newStatus;
         console.log("GAME STATUS", this.status);
 
-        if (newStatus === "paused") {
+        if (newStatus === "paused" || newStatus === "ended") {
             this.keys = {};
             if (this.player) {
                 this.player.canControl = false;
@@ -159,7 +157,9 @@ export default class Game extends State {
     wasCaught(){
         this.player.type='spectator';
         this.player.element.classList.add('spectator');
-        this.hud.showCenterMessage('You were caught!', 'You are now a spectator.', 0);
+        if (!Object.values(state.players).some(player => player.isCaught)) {
+            this.hud.showCenterMessage('You were caught!', 'You are now a spectator.', 0);
+        }
         audio.playSound('caught');
     }
 
@@ -183,11 +183,49 @@ export default class Game extends State {
         this.setPlayerPosition(state.players[getMyId()].x, state.players[getMyId()].y);
         this.createMap()
         this.setupEventListeners();
+        this.registerSocketHandlers();
         this.setupPauseHotkey();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
         this.player.role = state.players[getMyId()].role;
         this.gameLoop(5);
     }
+
+    registerSocketHandlers() {
+        const handlers = {
+            "dashboard:action": (data) => {
+                const { action } = data;
+                switch (action) {
+                    case "pause":
+                        this.hud.controls(state.isHost, "pause");
+                        break;
+                    case "resume":
+                        this.hud.controls(state.isHost, "resume");
+                }
+            },
+            "game:ended": (data) => {
+                const { reason } = data;
+                if (reason === "manual") {
+                    state.switchState("lobby");
+                    return;
+                }
+                this.setStatus("ended");
+                if (reason === "seekerWon") {
+                    const message = this.player.role === "seeker" ? "Congratulations" : "Game over";
+                    this.hud.showCenterMessage(message, "Seeker wins", 0);
+                } else if (reason === "timeUp") {
+                    const message = this.player.role === "hider" ? "Congratulations" : "Game over";
+                    this.hud.showCenterMessage(message, "Hiders win", 0);
+                }
+                this.hud.controls(state.isHost, "end");
+            },
+            "startGame": () => {
+                state.switchState("game");
+            },
+        }
+
+        Object.entries(handlers).forEach(([event, handler]) => this.onSocket(event, handler));
+    }
+
     setPlayerPosition(x, y) {
         this.player.x = x;
         this.player.y = y;
@@ -378,7 +416,7 @@ export default class Game extends State {
 
         audio.updatePosition(this.player.x, this.player.y);
 
-        requestAnimationFrame((time) => this.gameLoop(time));
+        this.requestAnimationFrame((time) => this.gameLoop(time));
     }
 
     updateFlashlightCone() {
@@ -496,5 +534,10 @@ export default class Game extends State {
             }
 
         }
+    }
+
+    onCleanup() {
+        audio.stopAllSounds();
+        document.body.removeChild(document.querySelector(".hud"))
     }
 }

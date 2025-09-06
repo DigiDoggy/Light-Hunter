@@ -20,13 +20,14 @@ class AppStateManager {
         this.skinIndex = null;
         this.readyStatus = false;
         this.isPaused=false
-        this.players = [];
+        this.players = {};
         this.map = Map1;
 
         this.gameId = null;
         this.gameStatus = null; // lobby, started, ended, paused
 
         this.settings = {};
+        this.error = null;
 
         this.init();
     }
@@ -36,6 +37,11 @@ class AppStateManager {
         // this.switchState("mainMenu");
         // this.switchState("lobby");
         // this.switchState("game")
+    }
+
+    reset() {
+        this.readyStatus = false;
+        this.isPaused=false
     }
 
     setGameId(gameId) {

@@ -100,7 +100,7 @@ class Timer {
         this.deadlineMs=null;
         this.pauseLeft=null;
 
-        this.io.to(this.roomId).emit('game:ended', {reason});
+        // this.io.to(this.roomId).emit('game:ended', {reason});
 
         this.onTimerEnd?.(reason);
     }

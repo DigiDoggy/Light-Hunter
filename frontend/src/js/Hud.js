@@ -1,7 +1,11 @@
 // Hud.js
+import state from "./AppStateManager.js";
+import {endGame, leaveGame, restartGame} from "./multiplayer.js";
+
 export default class HUD {
-    constructor(root = document.body) {
+    constructor(root = document.body, game) {
         this.root = root;
+        this.game = game;
         this.el = document.createElement('div');
         this.el.className = 'hud';
 
@@ -28,15 +32,24 @@ export default class HUD {
 
         this.top.append(this.seekerBox, this.timerBox, this.hidersBox);
 
+        this.centerHud = document.createElement("div");
+        this.centerHud.className = 'hud__center';
+
         this.centerMsg = document.createElement('div');
         this.centerMsg.className = 'hud__center-msg';
         this.centerMsg.hidden = true;
+        this.centerHud.append(this.centerMsg);
+
+        this.controlsHud = document.createElement("div");
+        this.controlsHud.className = "hud__center-msg hud__controls";
+        this.controlsHud.hidden = true;
+        this.centerHud.append(this.controlsHud);
 
         this.toastBox = document.createElement('div');
         this.toastBox.className = 'hud__toasts hud__toasts--under-hiders';
         this.hidersBox.append(this.toastBox);
 
-        this.el.append(this.top, this.centerMsg);
+        this.el.append(this.top, this.centerHud);
         this.root.append(this.el);
     }
 
@@ -108,5 +121,61 @@ export default class HUD {
                 wrap.remove();
             }, ttl);
         }
+    }
+
+    controls(isHost, status) {
+        const quitButton = () => {
+            const quit = document.createElement("button");
+            quit.className = "hud__controls-btn hud__toast--danger";
+            quit.textContent = "Quit";
+            this.controlsHud.append(quit);
+            this.game.addEventListener(quit, "click", () => {
+                leaveGame();
+                state.reset();
+                state.switchState("mainMenu");
+            });
+        };
+
+        const endButton = (force) => {
+            const end = document.createElement("button");
+            end.className = "hud__controls-btn";
+            end.classList.add(force ? "hud__toast--danger" : "hud__toast--success");
+            end.textContent = force ? "End Game" : "Back to lobby";
+            this.controlsHud.append(end);
+            this.game.addEventListener(end, "click", () => {
+                endGame();
+            });
+        };
+
+        const restartButton = () => {
+            const restart = document.createElement("button");
+            restart.className = "hud__controls-btn";
+            restart.textContent = "Restart Game";
+            this.controlsHud.append(restart);
+            this.game.addEventListener(restart, "click", () => {
+                restartGame();
+                state.reset();
+                state.switchState("game");
+            });
+        };
+
+        this.controlsHud.innerHTML = "";
+
+        if (status === "resume") {
+            this.controlsHud.hidden = true;
+            return;
+        }
+
+        if (isHost) {
+            if (status === "end") {
+                restartButton();
+                endButton(false);
+            } else {
+                endButton(true)
+            }
+        }
+
+        quitButton();
+        this.controlsHud.hidden = false;
     }
 }

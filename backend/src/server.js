@@ -26,7 +26,7 @@ app.use(express.json());
 io.on('connection', (socket) => {
 
     socket.on("hostGame", (data) => {
-        const game = new Game(io, socket);
+        const game = new Game(io, socket, deleteGame);
         const player = game.addPlayer(socket, data.username, true);
         games.set(game.id, game);
         socket.emit("hostGame", { gameId: game.id, player: player });
@@ -37,6 +37,10 @@ io.on('connection', (socket) => {
         const game = games.get(data.gameId);
         if (!game) {
             socket.emit("error", `Game with id ${data.gameId} not found`);
+            return;
+        }
+        if (game.status !== Game.Status.LOBBY) {
+            socket.emit("error", `Game has already started`);
             return;
         }
         if (game.usernameExists(data.username)) {
@@ -52,3 +56,7 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
     console.log(`Backend running at http://localhost:${PORT}`);
 });
+
+function deleteGame(id) {
+    games.delete(id);
+}

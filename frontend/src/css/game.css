@@ -153,11 +153,21 @@ body {
 }
 
 /* Message manager pause/restart/winer */
-.hud__center-msg {
+.hud__center {
+    display: flex;
     position: absolute;
-    top: 35%;
-    left: 50%;
-    transform: translate(-50%, -35%);
+    justify-self: center;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    flex-direction: column;
+}
+
+.hud__center-msg {
+    /*position: absolute;*/
+    /*top: 35%;*/
+    /*left: 50%;*/
+    /*transform: translate(-50%, -35%);*/
     background: rgba(0,0,0,.55);
     padding: 14px 20px;
     border-radius: 12px;
@@ -165,6 +175,27 @@ body {
     min-width: 280px;
     pointer-events: none;
 }
+
+.hud__controls {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.hud__controls-btn {
+    width: 250px;
+    height: 50px;
+    font-size: 24px;
+    /*border: none;*/
+    border-radius: 10px;
+    margin-top: 5px;
+    border: 1px solid black;
+    pointer-events: all;
+    cursor: pointer;
+}
+
 .hud__center-title {
     font-size: 28px;
     font-weight: 800;

@@ -129,11 +129,19 @@ class SocketHandler {
         });
 
         socket.on('game:ended', ({ reason }) => {
+            console.log("game:ended", reason);
+            if (reason === "manual") {
+                state.reset();
+                state.switchState("lobby");
+                return;
+            }
+
             window.dispatchEvent(new CustomEvent('hud:gameover', { detail: { reason } }));
             window.dispatchEvent(new CustomEvent('hud:toast', {
                 detail: { title: 'Match ended', text: reason || '', tone: 'neutral', ttl: 3000 }
             }));
             state.gameStatus = 'ended';
+            state.reset();
         });
 
         socket.on("error", (err) => {
@@ -196,6 +204,14 @@ class SocketHandler {
                 ));
             state.gameStatus = 'ended';
         });
+
+        socket.on("session:end", ({ reason }) => {
+            console.log("session:end", reason);
+            state.reset();
+            state.switchState("mainMenu");
+
+            if (reason === "Host disconnected") state.error = reason;
+        })
     }
 
     onHostJoinResponse(data) {
@@ -307,6 +323,14 @@ export function hostPauseGame()  {
 }
 export function resumeGame() {
     socket.emit('game:resume');
+}
+
+export function restartGame() {
+    socket.emit("game:restart");
+}
+
+export function endGame() {
+    socket.emit("game:end");
 }
 
 export function isPaused() {

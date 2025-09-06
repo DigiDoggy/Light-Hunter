@@ -6,15 +6,22 @@ import {walls, WORLD} from "./mapData.js";
 //todo need import Bonuses, and remove from server
 
 export default class Game {
+    static Status = {
+        LOBBY: "lobby",
+        IN_GAME: "in_game",
+    };
+
     players = {};
 
-    constructor(io, hostSocket) {
+    constructor(io, hostSocket, deleteGame) {
         this.io = io;
         this.id = crypto.randomUUID().substring(0, 8).toUpperCase(); // todo check for collision
         this.host = hostSocket;
+        this.deleteGame = deleteGame;
         this.mapId = 0;
         this.isPaused = false;
         this.pauseId = null;
+        this.status = Status.LOBBY;
 
         //timer
         this.timer = new Timer({
@@ -37,8 +44,8 @@ export default class Game {
 
     onTimerEnd(reason) {
         // handler for end of game
-        this.bonuses.stop();
-        this.broadcast("game:ended", {reason, players: this.players})
+        this.endGame(reason);
+
     }
 
     assignRoles() {
@@ -101,6 +108,16 @@ export default class Game {
             }
         )
 
+        socket.on("game:end", () => {
+            if (socket.id !== this.host.id) return;
+            this.endGame("manual");
+        });
+
+        socket.on("game:restart", () => {
+            if (socket.id !== this.host.id) return;
+            this.restartGame();
+        });
+
         //player
         socket.on('move', ({x, y, facingAngle, isMoving, flashOn}) => {
             if (this.isPaused) return;
@@ -137,8 +154,7 @@ export default class Game {
                 }
             }
             console.log('end');
-            this.endGame()
-
+            this.endGame("seekerWon");
         });
 
         socket.on('bonus:pickup', (data) =>
@@ -163,12 +179,28 @@ export default class Game {
     }
 
     handleDisconnect(socket) {
+        if (socket.id === this.host.id) {
+            this.endSession("Host disconnected");
+            return;
+        }
+
         delete this.players[socket.id];
         this.broadcast('playerDisconnected', socket.id);
         if (this.isPaused && this.pauseId === socket.id) {
             this.pauseId = null;
             this.resumeGame(this.host.id);
         }
+        this.cleanupSocket(socket);
+    }
+
+    cleanupSocket(socket) {
+        const keep = ["hostGame", "joinGame"];
+        for (const event of socket.eventNames()) {
+            if (!keep.includes(event)) {
+                socket.removeAllListeners(event);
+            }
+        }
+        socket.leave(this.id);
     }
 
     broadcastPlayerList() {
@@ -178,8 +210,10 @@ export default class Game {
     //setting timer for game
 
     startGame(durationMs = 5 * 60000) {
+        this.status = Status.IN_GAME;
         this.assignRoles();
-        this.timer.start(durationMs);
+        this.timer.start(2000);
+        // this.timer.start(durationMs);
         this.bonuses.start();
         this.broadcast("startGame", this.players);
     }
@@ -202,11 +236,37 @@ export default class Game {
         console.log(`Resumed by ${byName}`)
         this.broadcast("dashboard:action", {byId, byName, action: "resume"})
     }
-    endGame() {
-        this.onTimerEnd('The seeker has won');
+
+    endGame(reason) {
+        this.reset();
+        this.status = Status.LOBBY;
+        this.broadcast("game:ended", {reason, players: this.players})
+    }
+
+    restartGame() {
+        this.reset();
+        this.startGame();
+    }
+
+    reset() {
+        Object.values(this.players).forEach((player) => player.readyStatus = false);
+        this.timer.stopUpdate();
+        this.bonuses.stop();
+        this.isPaused = false;
+        this.pauseId = null;
+    }
+
+    async endSession(reason = null) {
+        this.broadcast("session:end", { reason });
+        this.reset();
+        const sockets = await this.io.in(this.id).fetchSockets();
+        sockets.forEach((socket) => this.cleanupSocket(socket));
+        this.deleteGame(this.id);
     }
 
     broadcast(message, data) {
         this.io.to(this.id).emit(message, data);
     }
 }
+
+const { Status } = Game;

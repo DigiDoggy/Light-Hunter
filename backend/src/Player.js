@@ -38,14 +38,6 @@ export default class Player {
             }
             this.#game.startGame();
         })
-
-        socket.on("move", (data) => {
-            this.x = data.x;
-            this.y = data.y;
-            this.facingAngle = data.facingAngle;
-            this.isMoving = data.isMoving;
-            this.#game.broadcast("playerMoved", { id: socket.id, ...data});
-        })
     }
 
     pickRandomUnusedSkin() {

@@ -27,6 +27,10 @@ body {
     display: none;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 .darkness-overlay {
     display: flex;
     align-items: center;

@@ -90,6 +90,16 @@ class AudioManager {
     stopAllSounds() {
         Howler.stop();
     }
+
+    isPlaying(name) {
+        const sound = sounds[name];
+        if (!sound) {
+            console.error("No sound: ", name);
+            return false;
+        }
+
+        return sound.playing();
+    }
 }
 
 const audio = new AudioManager();

@@ -24,6 +24,7 @@ export default class Lobby extends State {
         this.registerSocketHandlers();
         getPlayers();
         this.render();
+        if (!audio.isPlaying("menuMusic")) audio.playMenuMusic();
     }
 
     registerSocketHandlers() {

@@ -9,7 +9,7 @@ export default class MainMenu extends State {
         this.setupContainer("mainMenuContainer");
         this.registerSocketHandlers();
         this.render();
-        audio.playMenuMusic();
+        if (!audio.isPlaying("menuMusic")) audio.playMenuMusic();
     }
 
     registerSocketHandlers() {
