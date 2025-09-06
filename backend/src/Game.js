@@ -2,22 +2,60 @@ import Player from "./Player.js";
 import Timer from "./Timer.js";
 import BonusManager from "./BonusManager.js";
 import {walls, WORLD} from "./mapData.js";
+import {io} from "./server.js";
+
+let games = new Map();
+
+export function regGameHandlers(socket) {
+    const handlers = {
+        "hostGame": ({ username }) => {
+            const game = new Game(io, socket);
+            const player = game.addPlayer(socket, username, true);
+            games.set(game.id, game);
+            socket.emit("hostGame", { gameId: game.id, player: player });
+        },
+        "joinGame": ({ gameId, username }) => {
+            const game = games.get(gameId);
+            if (!game) {
+                socket.emit("error", `Game with id ${gameId} not found`);
+                return;
+            }
+            if (game.status !== Game.Status.LOBBY) {
+                socket.emit("error", `Game has already started`);
+                return;
+            }
+            if (game.usernameExists(username)) {
+                socket.emit("error", `Player with name ${username} already exists`);
+                return;
+            }
+
+            const player = game.addPlayer(socket, username);
+            socket.emit("joinGame", { gameId: game.id, player: player });
+        },
+    }
+
+    Object.entries(handlers).forEach(([event, handler]) => socket.on(event, handler));
+}
+
+function deleteGame(id) {
+    games.delete(id);
+}
 
 //todo need import Bonuses, and remove from server
 
 export default class Game {
     static Status = {
         LOBBY: "lobby",
-        IN_GAME: "in_game",
+        STARTED: "started",
+        ENDED: "ended",
     };
 
     players = {};
 
-    constructor(io, hostSocket, deleteGame) {
+    constructor(io, hostSocket) {
         this.io = io;
         this.id = crypto.randomUUID().substring(0, 8).toUpperCase(); // todo check for collision
         this.host = hostSocket;
-        this.deleteGame = deleteGame;
         this.mapId = 0;
         this.isPaused = false;
         this.pauseId = null;
@@ -165,6 +203,7 @@ export default class Game {
 
         socket.on("game:pause", () => {
             if (this.isPaused) return;
+            if (this.status === Status.ENDED || this.status === Status.LOBBY) return;
             this.pauseId = socket.id;
             this.pauseGame(socket.id);
         });
@@ -210,7 +249,7 @@ export default class Game {
     //setting timer for game
 
     startGame(durationMs = 5 * 60000) {
-        this.status = Status.IN_GAME;
+        this.status = Status.STARTED;
         this.assignRoles();
         this.timer.start(2000);
         // this.timer.start(durationMs);
@@ -239,7 +278,11 @@ export default class Game {
 
     endGame(reason) {
         this.reset();
-        this.status = Status.LOBBY;
+        if (reason === "manual") {
+            this.status = Status.LOBBY;
+        } else {
+            this.status = Status.ENDED;
+        }
         this.broadcast("game:ended", {reason, players: this.players})
     }
 
@@ -261,7 +304,7 @@ export default class Game {
         this.reset();
         const sockets = await this.io.in(this.id).fetchSockets();
         sockets.forEach((socket) => this.cleanupSocket(socket));
-        this.deleteGame(this.id);
+        deleteGame(this.id);
     }
 
     broadcast(message, data) {
