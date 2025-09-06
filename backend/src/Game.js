@@ -251,8 +251,7 @@ export default class Game {
     startGame(durationMs = 5 * 60000) {
         this.status = Status.STARTED;
         this.assignRoles();
-        this.timer.start(2000);
-        // this.timer.start(durationMs);
+        this.timer.start(durationMs);
         this.bonuses.start();
         this.broadcast("startGame", this.players);
     }
