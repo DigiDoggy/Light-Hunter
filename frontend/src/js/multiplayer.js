@@ -131,8 +131,9 @@ class SocketHandler {
         socket.on('game:ended', ({ reason }) => {
             console.log("game:ended", reason);
             if (reason === "manual") {
+                console.log("manual")
                 state.reset();
-                state.switchState("lobby");
+                state.switchState("MainMenu");
                 return;
             }
 
@@ -198,12 +199,12 @@ class SocketHandler {
         });
 
 
-        socket.on('game:ended', ({ reason }) => {
-            window.dispatchEvent(
-                new CustomEvent('hud:gameover', { detail: { reason }}
-                ));
-            state.gameStatus = 'ended';
-        });
+        // socket.on('game:ended', ({ reason }) => {
+        //     window.dispatchEvent(
+        //         new CustomEvent('hud:gameover', { detail: { reason }}
+        //         ));
+        //     state.gameStatus = 'ended';
+        // });
 
         socket.on("session:end", ({ reason }) => {
             console.log("session:end", reason);

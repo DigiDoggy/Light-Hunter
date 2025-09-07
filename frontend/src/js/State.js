@@ -63,11 +63,15 @@ export default class State {
         this.intervals.forEach(id => clearInterval(id));
         this.intervals = [];
 
-        this.timeouts.forEach((id) => clearInterval(id));
+        this.timeouts.forEach((id) => clearTimeout(id));
         this.timeouts = [];
 
         this.animationFrames.forEach((id) => cancelAnimationFrame(id));
         this.animationFrames = [];
+
+        if (this.container?.isConnected) {
+                this.container.remove();
+              }
 
         this.onCleanup();
     }

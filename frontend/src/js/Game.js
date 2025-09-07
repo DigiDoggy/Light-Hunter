@@ -244,7 +244,7 @@ export default class Game extends State {
     setupPauseHotkey() {
         let lastToggleAt = 0;
 
-        document.addEventListener('keydown', (e) => {
+        this.addEventListener(document,'keydown', (e) => {
             if (e.code !== 'Space' || e.repeat) return;
             e.preventDefault();
 
@@ -360,10 +360,10 @@ export default class Game extends State {
     }
 
     setupEventListeners() {
-        document.addEventListener("keydown", (e) => this.keys[e.code] = true);
-        document.addEventListener("keyup", (e) => this.keys[e.code] = false);
+        this.addEventListener(document,"keydown", (e) => this.keys[e.code] = true);
+        this.addEventListener(document,"keyup", (e) => this.keys[e.code] = false);
 
-        document.addEventListener("keydown", (e) => {
+        this.addEventListener(document,"keydown", (e) => {
             if (e.code === "Escape") {
                 state.switchState("lobby")
             }
@@ -539,5 +539,11 @@ export default class Game extends State {
     onCleanup() {
         audio.stopAllSounds();
         document.body.removeChild(document.querySelector(".hud"))
+        const overlay = this.flash?.flashlightOverlay;
+         if (overlay?.isConnected) overlay.remove();
+
+        this.gameObjects?.forEach(o => o.remove?.());
+        this.gameObjects = [];
+
     }
 }

@@ -294,6 +294,7 @@ export default class Game {
         Object.values(this.players).forEach((player) => player.readyStatus = false);
         this.timer.stopUpdate();
         this.bonuses.stop();
+        this.bonuses.bonuses.clear();
         this.isPaused = false;
         this.pauseId = null;
     }
