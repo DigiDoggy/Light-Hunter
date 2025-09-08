@@ -39,7 +39,6 @@ export default class Lobby extends State {
         this.onSocket("updateReadyStatus", ({ id, readyStatus}) => {
             this.updatePlayerList();
             if (id === getMyId()) {
-                console.log(readyStatus);
                 if (readyStatus === true) this.readyButton.classList.add("ready");
                 else if (readyStatus === false) this.readyButton.classList.remove("ready");
             }

@@ -27,6 +27,7 @@ const sounds = {
     "buttonClick2": new Howl({src: [PATH + "buttonClick2.wav"]}),
     "switchState": new Howl({src: [PATH + "switchState.wav"]}),
     "bonus": new Howl({src: [PATH + "bonus.wav"]}),
+    "caught": new Howl({src: [PATH + "thud.mp3"]}),
 }
 
 // Footsteps

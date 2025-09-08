@@ -197,6 +197,7 @@ export default class Game {
         socket.on("catch", (playerId) => {
             const player = this.players[playerId];
             if (!player) return;
+            if (player.isCaught) return;
             player.isCaught = true;
             this.broadcast("playerCaught", playerId);
             for (const id in this.players) {
