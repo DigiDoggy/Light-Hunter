@@ -72,10 +72,10 @@ this.interval=null;
             const rect = { x, y, width: this.size, height: this.size };
 
             const hitWall = (walls || []).some(w =>
-                !(rect.x + rect.width <= w.x ||
-                    w.x + w.width <= rect.x ||
-                    rect.y + rect.height <= w.y ||
-                    w.y + w.height <= rect.y)
+                !(rect.x + rect.width + 10 <= w.x ||
+                    w.x + w.width + 10 <= rect.x ||
+                    rect.y + rect.height +10 <= w.y ||
+                    w.y + w.height +10 <= rect.y)
             );
             if (hitWall) continue;
 
