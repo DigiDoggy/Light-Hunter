@@ -96,7 +96,7 @@ export default class Game {
         for (const p of Object.values(this.players)) {
             p.isCaught = false;
             p.type = 'player';
-            p.flashOn = false;
+            p.flashOn = true;
             p.isMoving = false;
         }
         const seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];

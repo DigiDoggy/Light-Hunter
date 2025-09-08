@@ -13,7 +13,7 @@ export default class BonusBox extends GameObject {
 
     static defs = {
         speed: {
-            duration: 10_000,
+            duration: 100000_000,
             apply(player) {
                 if (player._baseSpeed == null) player._baseSpeed = player.speed;
                 player.speed = player._baseSpeed + 100;

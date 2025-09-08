@@ -28,6 +28,7 @@ export default class Game extends State {
         this.player.setCharacterIndex(state.skinIndex)
         this.camera = new Camera(0.1);
         this.flash = new Flashlight();
+
         this.gameObjects = [];
         this.gridSize = 32;
         this.spatialGrid = [];

@@ -14,7 +14,7 @@ export default class Flashlight {
                 <feGaussianBlur stdDeviation="15" />
               </filter>
               <mask id="flashlight-mask">
-                <rect width="100%" height="100%" fill="white"/>
+                <rect width="100%" height="100%" fill="black"/>
               </mask>
           </defs>
           <rect width="100%" height="100%" fill="black" mask="url(#flashlight-mask)" />`;
@@ -25,11 +25,11 @@ export default class Flashlight {
         this.mask.querySelectorAll("polygon").forEach(p => p.remove());
     }
 
-    addCone(points) {
+    addCone(points, color = "red") {
         const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
         polygon.setAttribute("points", points);
         polygon.setAttribute("opacity", "0.8");
-        polygon.setAttribute("fill", "black");
+        polygon.setAttribute("fill", color);
         polygon.setAttribute("filter", "url(#blur-filter)");
         this.mask.appendChild(polygon);
     }
