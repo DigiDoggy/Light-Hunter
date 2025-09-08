@@ -5,7 +5,7 @@ import io from 'socket.io-client';
 import state from "./AppStateManager.js";
 import {allMaps} from "./map.js";
 
-export const socket = io('http://localhost:8080');
+export const socket = io();
 
 let bonuses = {};
 

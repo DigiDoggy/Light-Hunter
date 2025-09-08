@@ -50,7 +50,7 @@ export default class Game extends State {
             this.removeBonusById(id);
 
             if (by === getMyId()) {
-                audio.playSound('bonusPickup');
+                audio.playSound('bonus');
             }
         });
 
