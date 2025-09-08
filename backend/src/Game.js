@@ -88,6 +88,13 @@ export default class Game {
 
     assignRoles() {
         const playerIds = Object.keys(this.players);
+
+        for (const p of Object.values(this.players)) {
+            p.isCaught = false;
+            p.type = 'player';
+            p.flashOn = false;
+            p.isMoving = false;
+        }
         const seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];
         playerIds.forEach(id => {
             const player = this.players[id];
