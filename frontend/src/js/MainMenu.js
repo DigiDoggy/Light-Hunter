@@ -105,6 +105,9 @@ export default class MainMenu extends State {
                 primary: ["a", "d"],
                 secondary: ["←", "→"],
             },
+            flashlight: {
+                primary: ["left ctrl"],
+            },
             pause: {
                 primary: ["space"],
             }
