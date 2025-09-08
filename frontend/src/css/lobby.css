@@ -24,14 +24,14 @@
         height: 60%;
     }
 
-    p {
-        font-size: 22px;
-        margin: auto;
-    }
-
     .player-name {
         margin-left: 8px;
     }
+}
+
+p {
+    font-size: 22px;
+    margin: auto;
 }
 
 .skin {
@@ -146,5 +146,28 @@
     opacity: 0.8;
 }
 
+.copy-game-id {
+    position: fixed;
+    top: 0;
+    left: 50vw;
+    transform: translate(-50%);
+    font-size: 30px;
+}
 
+.copy-section {
+    max-width: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    font-size: 30px;
+}
 
+.copy-btn {
+    cursor: pointer;
+    user-select: none;
+}
+
+.copy-btn:hover {
+    opacity: 0.6;
+}

@@ -56,8 +56,29 @@ export default class Lobby extends State {
         this.renderMapSection(frame);
         this.renderReadyButton(frame);
         this.renderBackButton(this.container);
+        this.renderGameId(this.container);
 
         this.container.appendChild(frame);
+    }
+
+    renderGameId(parent) {
+        const container = document.createElement("div")
+        container.className = "copy-game-id"
+
+        // language=HTML
+        container.innerHTML = `
+            <p class="copy-section">${state.gameId}</p>
+            <div id="copyBtn" class="copy-section copy-btn">
+                <i class="fa-regular fa-copy"></i>
+                <p>Copy</p>
+            </div>
+        `;
+
+        parent.appendChild(container);
+
+        this.addEventListener(document.getElementById("copyBtn"), "click", () => {
+            navigator.clipboard.writeText(state.gameId).catch((err) => console.error("Failed to copy", err));
+        })
     }
 
     renderBackButton(container) {
