@@ -236,6 +236,14 @@ export default class Game {
             this.pauseId = null;
             this.resumeGame(this.host.id);
         }
+
+        if (this.status === Status.LOBBY) {
+            Object.values(this.players).forEach((player) => {
+                player.readyStatus = false;
+                this.broadcast("updateReadyStatus", { id: player.id, readyStatus: player.readyStatus });
+            });
+        }
+
         this.cleanupSocket(socket);
     }
 

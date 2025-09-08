@@ -1,6 +1,6 @@
 import state from "./AppStateManager.js";
 import { allMaps } from "./map.js";
-import {updateSkin, updateMap, getPlayers, updateReadyStatus, leaveGame} from "./multiplayer.js";
+import {updateSkin, updateMap, getPlayers, updateReadyStatus, leaveGame, getMyId} from "./multiplayer.js";
 import "../css/lobby.css";
 import State from "./State.js";
 import audio from "./AudioManager.js";
@@ -16,6 +16,7 @@ export default class Lobby extends State {
     constructor() {
         super();
         this.playerList = null;
+        this.readyButton = null;
         this.error = "";
     }
 
@@ -31,10 +32,17 @@ export default class Lobby extends State {
         this.onSocket("getPlayers", () => this.updatePlayerList());
         this.onSocket("newPlayer", () => this.updatePlayerList());
         this.onSocket("updateSkin", () => this.updatePlayerList());
-        this.onSocket("updateReadyStatus", () => this.updatePlayerList());
         this.onSocket("playerDisconnected", () => this.updatePlayerList());
         this.onSocket("updateMap", () => this.openMapSelectorButton.style.backgroundImage = `url(${state.map.imagePath})`);
         this.onSocket("startGame", () => state.switchState("game"));
+        this.onSocket("updateReadyStatus", ({ id, readyStatus}) => {
+            this.updatePlayerList();
+            if (id === getMyId()) {
+                console.log(readyStatus);
+                if (readyStatus === true) this.readyButton.classList.add("ready");
+                else if (readyStatus === false) this.readyButton.classList.remove("ready");
+            }
+        });
     }
 
     render() {
@@ -136,6 +144,7 @@ export default class Lobby extends State {
         readyContainer.classList.add("ready-container");
 
         const readyButton = document.createElement("button");
+        this.readyButton = readyButton;
         readyButton.className = "ready-button menu-item";
         readyButton.textContent = "Ready";
 

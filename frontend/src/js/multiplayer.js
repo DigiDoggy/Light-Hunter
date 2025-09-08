@@ -112,6 +112,7 @@ class SocketHandler {
         })
 
         socket.on("updateReadyStatus", (player) => {
+            if (player.id === socket.id) state.readyStatus = player.readyStatus;
             state.players[player.id].readyStatus = player.readyStatus;
             console.log("update ready status:", player);
         })
