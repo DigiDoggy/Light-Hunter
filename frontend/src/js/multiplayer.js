@@ -133,7 +133,7 @@ class SocketHandler {
             if (reason === "manual") {
                 console.log("manual")
                 state.reset();
-                state.switchState("MainMenu");
+                state.switchState("lobby");
                 return;
             }
 

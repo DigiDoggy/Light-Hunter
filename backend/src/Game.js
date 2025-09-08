@@ -2,7 +2,7 @@ import Player from "./Player.js";
 import Timer from "./Timer.js";
 import BonusManager from "./BonusManager.js";
 import {walls, WORLD} from "./mapData.js";
-import {io} from "./server.js";
+import {DEV_MODE, io} from "./server.js";
 
 let games = new Map();
 
@@ -256,6 +256,7 @@ export default class Game {
     //setting timer for game
 
     startGame(durationMs = 5 * 60000) {
+        if (!DEV_MODE && Object.keys(this.players).length < 2) return;
         this.status = Status.STARTED;
         this.assignRoles();
         this.timer.start(durationMs);
@@ -294,6 +295,10 @@ export default class Game {
 
     restartGame() {
         this.reset();
+        if (Object.keys(this.players).length < 2) {
+            this.broadcast("game:ended", { reason: "manual" });
+            return;
+        }
         this.startGame();
     }
 

@@ -30,12 +30,13 @@ export default class Player {
 
         socket.on("updateReadyStatus", (status) => {
             this.readyStatus = status;
-            for (const [id, player] of Object.entries(this.#game.players)) {
-                if (player.readyStatus === false) {
-                    this.#game.broadcast("updateReadyStatus", { id: this.id, readyStatus: status });
-                    return;
-                }
+            this.#game.broadcast("updateReadyStatus", { id: this.id, readyStatus: this.readyStatus });
+
+            for (const player of Object.values(this.#game.players)) {
+                if (player.readyStatus === false) return;
             }
+
+            // Start game if all players are ready
             this.#game.startGame();
         })
     }

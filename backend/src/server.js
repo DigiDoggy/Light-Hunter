@@ -4,6 +4,9 @@ import { Server } from "socket.io";
 import cors from "cors";
 import { regGameHandlers } from './Game.js';
 
+export const DEV_MODE = process.env.NODE_ENV === "development";
+if (DEV_MODE) console.log("Development mode enabled");
+
 const app = express();
 app.use(cors({
     origin(origin, cb) {

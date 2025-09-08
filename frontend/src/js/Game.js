@@ -204,10 +204,7 @@ export default class Game extends State {
             },
             "game:ended": (data) => {
                 const { reason } = data;
-                if (reason === "manual") {
-                    state.switchState("lobby");
-                    return;
-                }
+                if (reason === "manual") return;
                 this.setStatus("ended");
                 if (reason === "seekerWon") {
                     const message = this.player.role === "seeker" ? "Congratulations" : "Game over";
