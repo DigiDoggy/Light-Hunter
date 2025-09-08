@@ -20,12 +20,14 @@ class AppStateManager {
         this.skinIndex = null;
         this.readyStatus = false;
         this.isPaused=false
-        this.isSingleGame=false
         this.players = {};
         this.map = Map1;
 
         this.gameId = null;
         this.gameStatus = null; // lobby, started, ended, paused
+        this.isSingleGame=false
+        this.gameKey=null
+
 
         this.settings = {};
         this.error = null;

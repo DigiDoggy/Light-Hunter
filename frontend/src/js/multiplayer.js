@@ -91,6 +91,10 @@ class SocketHandler {
 
         socket.on("hostGame", (data) => {
             this.onHostJoinResponse(data);
+            if (data.gameKey) {
+                state.gameKey=data.gameKey;
+                console.log('Single-game key:', data.gameKey);
+            }
         })
 
         socket.on("joinGame", (data) => {
@@ -289,6 +293,9 @@ export function getMyId() {
 }
 
 export function hostGame(payload) {
+   const {isSingle}=payload;
+    console.log("single game bol ",isSingle)
+
     socket.emit("hostGame", { payload });
 }
 

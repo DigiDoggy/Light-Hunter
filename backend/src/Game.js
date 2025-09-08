@@ -8,14 +8,32 @@ let games = new Map();
 
 export function regGameHandlers(socket) {
     const handlers = {
-        "hostGame": ({ username }) => {
+        "hostGame": ({ payload }) => {
             const game = new Game(io, socket);
-            const player = game.addPlayer(socket, username, true);
-            games.set(game.id, game);
-            socket.emit("hostGame", { gameId: game.id, player: player });
+            const player = game.addPlayer(socket, payload.username, true);
+
+                games.set(game.id, game);
+            game.isSingle = !!payload.isSingle;
+            if (game.isSingle){
+                game.gameKey = crypto.randomUUID().slice(0, 8);
+            }
+
+            socket.emit("hostGame", { gameId: game.id, player: player,gameKey: game.gameKey  });
         },
-        "joinGame": ({ gameId, username }) => {
+        "joinGame": ({ gameId, username, key, isBot=false,difficulty=1 }) => {
             const game = games.get(gameId);
+
+            if (isBot) {
+                if (!key || key !== game.gameKey) {
+                    return socket.emit("error", "Bot key invalid");
+                }
+            } else {
+                if (game.isSingle && Object.values(game.players).some(p => !p.isBot)) {
+                    return socket.emit("error", "Host already present");
+                }
+            }
+
+
             if (!game) {
                 socket.emit("error", `Game with id ${gameId} not found`);
                 return;
@@ -32,9 +50,12 @@ export function regGameHandlers(socket) {
                 socket.emit("error", `Player with name ${username} already exists`);
                 return;
             }
+                const player = game.addPlayer(socket, username);
+                player.isBot = isBot;
+                player.botDifficulty = difficulty;
+                socket.emit("joinGame", { gameId: game.id, player: player });
 
-            const player = game.addPlayer(socket, username);
-            socket.emit("joinGame", { gameId: game.id, player: player });
+
         },
     }
 
@@ -64,6 +85,8 @@ export default class Game {
         this.isPaused = false;
         this.pauseId = null;
         this.status = Status.LOBBY;
+        this.isSingle=false;
+        this.gameKey=null;
 
         //timer
         this.timer = new Timer({
@@ -99,6 +122,8 @@ export default class Game {
             p.flashOn = true;
             p.isMoving = false;
         }
+
+        //todo here is mistake (cant test without bots)
         let seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];
         /* get bot player */
         const botid = playerIds.find(id => this.players[id].username === 'bot');
@@ -270,7 +295,8 @@ export default class Game {
     //setting timer for game
 
     startGame(durationMs = 5 * 60000) {
-        if (!DEV_MODE && Object.keys(this.players).length < 2) return;
+        //todo check start game if one player in single game(only for dev mode)
+        if (!DEV_MODE && Object.keys(this.players).length < 1) return;
         this.status = Status.STARTED;
         this.assignRoles();
         this.timer.start(durationMs);

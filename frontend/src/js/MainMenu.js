@@ -34,13 +34,13 @@ export default class MainMenu extends State {
         this.addEventListener(document.getElementById("host"), "click",() => {
             audio.playButtonClick();
             state.isHost = true;
-            state.isSingleGame = true;
-            this.gameEntryDialog("single");
+            this.gameEntryDialog("host");
         })
 
         this.addEventListener(document.getElementById("single"), 'click', ()=>{
             audio.playButtonClick();
-            this.state.isSingleGame=true;
+            state.isHost=true;
+            state.isSingleGame=true;
             this.gameEntryDialog('single')
         })
 
@@ -220,7 +220,7 @@ export default class MainMenu extends State {
         username.value = state.username ? state.username : "";
         form.appendChild(username);
 
-        if (mode === "join" || mode === "single") {
+        if (mode === "join") {
             const gameId = document.createElement("input");
             gameId.name = "gameId";
             gameId.classList.add("menu-item");
@@ -250,8 +250,9 @@ export default class MainMenu extends State {
 
         if (checkedUsername) {
             state.username = checkedUsername;
-            if (mode === "host" || mode === "single") {
-                hostGame({ username: checkedUsername, single: mode === 'single' });
+            const isSingle = (mode === 'single');
+            if (mode === "host" || mode ==='single') {
+                hostGame({username: checkedUsername, isSingle});
             } else {
                 joinGame(formData.get("gameId"), checkedUsername);
             }
