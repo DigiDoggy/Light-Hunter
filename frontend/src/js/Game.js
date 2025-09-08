@@ -273,7 +273,7 @@ export default class Game extends State {
         });
     }
 
-    castRay(x, y, angle, maxLength, self) {
+    castRay(x, y, angle, maxLength, role, selfid) {
         const dx = Math.cos(angle);
         const dy = Math.sin(angle);
 
@@ -293,7 +293,12 @@ export default class Game extends State {
                     closestDist = dist;
                     closestType = obj.type;
                     const npcThreshold = 150;
-                    if (closestType === 'player' && this.player.role ==='seeker' && closestDist >= 40 && closestDist <= npcThreshold && self) {
+                    if (closestType === 'player') {
+                        console.log('seen player', obj.id);
+                        console.log(obj)
+                    }
+                    if (closestType === 'player' && role ==='seeker' && closestDist <= npcThreshold && selfid !== obj.id) {
+                        console.log('caught player', obj.id);
                         playerCaught(obj.id);
                     }
                     if (obj.type === 'player') continue;
@@ -424,7 +429,7 @@ export default class Game extends State {
     updateFlashlightCone() {
         this.flash.clearCones();
 
-        const addConeForPlayer = (centerX, centerY, direction, role, self) => {
+        const addConeForPlayer = (centerX, centerY, direction, role,selfid) => {
             const coneLength = 220;
             const coneDivisor = role === "hider" ? 2 : 0.5;
             const coneAngle = Math.PI / coneDivisor;
@@ -432,7 +437,7 @@ export default class Game extends State {
             const rays = [];
             for (let i = 0; i <= rayCount; i++) {
                 const angle = direction - coneAngle / 2 + (coneAngle * i) / rayCount;
-                const end = this.castRay(centerX, centerY, angle, coneLength, self);
+                const end = this.castRay(centerX, centerY, angle, coneLength, role, selfid);
                 rays.push({ x: end.x, y: end.y, angle: angle });
             }
             rays.sort((a, b) => a.angle - b.angle);
@@ -445,7 +450,7 @@ export default class Game extends State {
         if (this.player.flashOn) {
             const playerCenterX = this.player.x + this.player.width / 2;
             const playerCenterY = this.player.y + this.player.height / 2;
-            addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, true);
+            addConeForPlayer(playerCenterX, playerCenterY, this.player.facingAngle || 0, this.player.role, this.player.id);
         }
         const players = state.players;
         for (const id in players) {
@@ -454,7 +459,7 @@ export default class Game extends State {
             if (!p.flashOn) continue;
             const centerX = p.x;
             const centerY = p.y;
-            addConeForPlayer(centerX, centerY, p.facingAngle || 0, p.role, false);
+            addConeForPlayer(centerX, centerY, p.facingAngle || 0, p.role, p.id);
         }
     }
 

@@ -99,7 +99,10 @@ export default class Game {
             p.flashOn = true;
             p.isMoving = false;
         }
-        const seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];
+        let seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];
+        /* get bot player */
+        const botid = playerIds.find(id => this.players[id].username === 'bot');
+        seekerId = botid;
         playerIds.forEach(id => {
             const player = this.players[id];
             if (id === seekerId) {
@@ -112,7 +115,6 @@ export default class Game {
                 player.y = Math.random() * 500 + 100;
             }
         });
-        console.log(this.players);
     }
 
     addPlayer(socket, username, isHost = false) {

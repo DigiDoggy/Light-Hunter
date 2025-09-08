@@ -47,7 +47,6 @@ export default class Player extends GameObject {
         // let direction = {x: 0, y: 0};
         const rotationSpeed = 2.5; // radians per second
         const moveSpeed = this.speed;
-        console.log(this.speed);
         const deltaTime = delta || 0.01667;
         const frameDuration = 200;
 
@@ -63,7 +62,6 @@ export default class Player extends GameObject {
 
         const moveStepX = Math.cos(this.facingAngle) * move * moveSpeed * deltaTime;
         const moveStepY = Math.sin(this.facingAngle) * move * moveSpeed * deltaTime;
-        console.log(moveStepY)
 
 
         const playerBoundsX = {
