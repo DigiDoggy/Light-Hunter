@@ -1,103 +1,196 @@
-# 🎮 Multiplayer Web Game Project
+# Light Hunter — Multiplayer Browser Game
 
-This is the initial setup for a multiplayer web game built with a **Vite-based frontend** and a **Node.js + Express + Socket.IO backend**.
+## Table of Contents
 
----
+1. [Introduction](#introduction)
+2. [Game Description](#game-description)
 
-## 📁 Project Structure
+    * [Bonuses](#bonuses)
+    * [Abilities](#abilities)
+    * [Win Conditions](#win-conditions)
+3. [Controls](#controls)
+4. [Technical Details](#technical-details)
 
-```
-project-root/
-├── frontend/         # Vite + Vanilla JS + Howler (audio)
-│   ├── src/
-│   ├── public/
-│   ├── index.html
-│   └── package.json
-├── backend/          # Express + Socket.IO
-│   ├── src/server.js
-│   └── package.json
-└── README.md
-```
+    * [Architecture](#architecture)
+    * [Libraries and Dependencies](#libraries-and-dependencies)
+5. [Running the Project](#running-the-project)
+6. [Configure ngrok](#configure-ngrok)
 
 ---
 
-## 🚀 Getting Started
+## Introduction
 
-### 🧩 Prerequisites
-
-* Node.js (v18+ recommended)
-* npm (v9+)
+This project was developed as part of an assignment: to create a multiplayer web game that works **in the browser without Canvas**, using only DOM elements.
+The game must support **2 to 4 players**, ensure smooth animation (60 FPS with `requestAnimationFrame`), and work over the internet, not just on a local network.
 
 ---
 
-### 🔧 Backend Setup
+## Game Description
 
-```bash
-cd backend
-npm install
-npm run dev
-```
+The game is essentially a **hide-and-seek in a maze**.
 
-* Runs on [http://localhost:8080](http://localhost:8080)
-* Uses Express + Socket.IO for real-time communication
-* CORS enabled for frontend access
+* The map consists of walls forming corridors and dead ends.
+* Each player has a **flashlight** that illuminates their path.
+* Players are divided into roles:
 
----
+    * **Seeker** — must find all Hiders within the time limit.
+    * **Hiders** — must avoid being found.
+    * **Spectator** - when a hider is found, they become a spectator and can freely move around the map through obstacles.
 
-### 🎨 Frontend Setup
+### Bonuses
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+Bonuses appear on the map:
 
-* Vite development server starts on [http://localhost:5173](http://localhost:5173)
-* Uses Socket.IO client to connect to backend
-* Includes `howler.js` for sound support
+1. **Speed** — temporarily increases the player's movement speed.
+2. **Time** — adds time to the global timer for the Seeker, and subtracts time for the Hiders.
+3. **Vision** - opens the map for a limited time.
 
----
+### Abilities
 
-## ⚙️ Scripts Summary
+* A Hider can press **Ctrl** to "hide in darkness": their flashlight turns off, making them invisible.
 
-### Frontend `package.json`
+### Win Conditions
 
-| Script    | Description                   |
-| --------- | ----------------------------- |
-| `dev`     | Run Vite dev server           |
-| `build`   | Build frontend for production |
-| `preview` | Preview built frontend        |
-
-### Backend `package.json`
-
-| Script  | Description                            |
-| ------- | -------------------------------------- |
-| `start` | Run server with Node                   |
-| `dev`   | Run server with `nodemon` (hot reload) |
+* **Seeker wins** if all Hiders are caught before the timer runs out.
+* **Hiders win** if at least one survives until the timer expires.
 
 ---
 
-## 📦 Installed Packages
+## Controls
 
-### Frontend:
-
-* `vite`
-* `howler` (audio playback)
-* `socket.io` (optional peer client/server sync)
-
-### Backend:
-
-* `express`
-* `socket.io`
-* `cors`
-* `dotenv`
-* `nodemon` (dev only)
+| Key       | Action                   |
+| --------- | ------------------------ |
+| **W / ↑** | Move forward             |
+| **S / ↓** | Move backward            |
+| **A / ←** | Rotate left              |
+| **D / →** | Rotate right             |
+| **Space** | Pause / Resume           |
+| **Ctrl**  | Toggle flashlight on/off |
 
 ---
-### Git Command
 
-* `git fetch --prune` - Will update information about branches and automatically
+## Technical Details
 
-## Close port
-* lsof -i tcp:8080
-* sudo kill 12345
+### Architecture
+
+* **Frontend** — Vite, Vanilla JS, DOM rendering (no Canvas).
+* **Backend** — Node.js, Express, Socket.IO for real-time player synchronization.
+* Communication happens via WebSocket events (`player:move`, `bonus:pickup`, `game:pause`, `timer:tick`, etc.).
+
+### Libraries and Dependencies
+
+#### Backend (`/backend`)
+
+**Dependencies**
+
+* **express** `^5.1.0` — HTTP server.
+* **socket.io** `^4.8.1` — real-time multiplayer communication.
+* **cors** `^2.8.5` — CORS support for the frontend.
+* **dotenv** `^17.2.1` — environment variables management.
+
+**Dev Dependencies**
+
+* **nodemon** `^3.1.10` — auto-restart server on changes.
+
+#### Frontend (`/frontend`)
+
+**Dependencies**
+
+* **vite** `^7.0.4` — bundler and dev server (listed under devDependencies, used during development/build).
+* **socket.io-client** `^4.8.1` — client connection to the server.
+* **socket.io** `^4.8.1` — shared protocol utilities used by some builds (optional; client uses `socket.io-client`).
+* **howler** `^2.2.4` — audio playback for sound effects.
+
+**Dev Dependencies**
+
+* **vite** `^7.0.4`
+
+---
+
+## Running the Project
+
+1. Clone the repository:
+
+   ```bash
+   git clone <repo-url>
+   cd <repo-folder>
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   cd backend
+   npm install
+   cd ../frontend
+   npm install
+   ```
+
+3. Start the backend:
+
+   ```bash
+   cd backend
+   npm run dev
+   ```
+
+4. Start the frontend:
+
+   ```bash
+   cd frontend
+   npm run dev
+   ```
+
+5.  Once started:
+
+    * Open the frontend URL (usually `http://localhost:5173`).
+    * Enter a player name and join the lobby.
+    * Once all players are ready, the **host** starts the game.
+
+## Configure ngrok
+
+ - Add Your Authtoken
+
+    Open your terminal and run:
+
+    ```yaml
+    ngrok config add-authtoken <your_token>
+    ```
+
+ - Edit the Configuration File
+
+    Open the ngrok configuration file by running:
+
+    ```yaml
+    ngrok config edit
+    ```
+
+ - Then add the following configuration (your authtoken will already be present):
+
+    ```yaml
+    version: "3"
+    
+    agent:
+      authtoken: <your_token>
+    
+    endpoints:
+      - name: frontend
+        upstream:
+          url: http://localhost:5173
+      - name: backend
+        upstream:
+          url: http://localhost:8080
+    ```
+
+ - Start ngrok
+
+    Ensure your server and client are running.
+
+    Open a new terminal window and run:
+    ```yaml
+    ngrok start --all
+    ```
+
+ - Copy the link and share it to play online.
+
+    ![ngrok.png](pic/ngrok.png)
+
+---
