@@ -130,6 +130,8 @@ class SocketHandler {
         });
 
         socket.on('game:ended', ({ reason }) => {
+            state.gameStatus = 'ended';
+
             console.log("game:ended", reason);
             if (reason === "manual") {
                 console.log("manual")
@@ -142,7 +144,6 @@ class SocketHandler {
             window.dispatchEvent(new CustomEvent('hud:toast', {
                 detail: { title: 'Match ended', text: reason || '', tone: 'neutral', ttl: 3000 }
             }));
-            state.gameStatus = 'ended';
             state.reset();
         });
 

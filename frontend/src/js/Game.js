@@ -373,6 +373,10 @@ export default class Game extends State {
 
 
     gameLoop(time) {
+        if (state.gameStatus === 'ended') this.player.isMoving = false;
+
+
+
         this.delta = (time - this.lastTime) / 1000;
         if (!Number.isFinite(this.delta) || this.delta < 0 || this.delta > 1){
             this.delta = 0;
@@ -395,7 +399,7 @@ export default class Game extends State {
 
         // Update other players from the server
         const players = state.players;
-        this.updateOtherPlayers(players);
+        this.updateOtherPlayers(players, state.gameStatus);
 
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
 
@@ -455,7 +459,7 @@ export default class Game extends State {
     }
 
 
-    updateOtherPlayers(players) {
+    updateOtherPlayers(players, status) {
         for (const id in players) {
             if (id === getMyId()) continue;
             const playerData = players[id];
@@ -479,7 +483,7 @@ export default class Game extends State {
                 otherPlayer.x = playerData.x;
                 otherPlayer.y = playerData.y;
                 otherPlayer.facingAngle = playerData.facingAngle || 0;
-                otherPlayer.isMoving = playerData.isMoving;
+                otherPlayer.isMoving = status === 'ended' ? false : playerData.isMoving ;
                 otherPlayer.updatePosition();
                 otherPlayer.animate(this.delta, undefined, otherPlayer.getDirectionFromAngle(), this.player.bounds);
                 otherPlayer.playAudio();
