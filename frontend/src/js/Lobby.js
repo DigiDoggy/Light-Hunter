@@ -84,6 +84,7 @@ export default class Lobby extends State {
             this.prepareSkin(skin, 1, player.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
 
             const playerName = document.createElement("p");
+            playerName.classList.add("player-name");
             playerName.textContent = (player.isHost ? "🔌" : "") + player.username + (player.readyStatus === true ? "🟢" : "🔴");
 
             if (player.username === state.username) {

@@ -28,6 +28,10 @@
         font-size: 22px;
         margin: auto;
     }
+
+    .player-name {
+        margin-left: 8px;
+    }
 }
 
 .skin {
