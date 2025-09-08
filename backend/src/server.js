@@ -5,15 +5,27 @@ import cors from "cors";
 import { regGameHandlers } from './Game.js';
 
 const app = express();
-app.use(cors()); // Enable CORS for all HTTP routes
+app.use(cors({
+    origin(origin, cb) {
+        if (!origin) return cb(null, true);
+        if (origin === 'http://localhost:5173' || /\.ngrok-(free|app)\.app$/.test(origin)) {
+            return cb(null, true);
+        }
+        return cb(new Error(`CORS blocked: ${origin}`));
+    },
+    credentials: true,
+})); // Enable CORS for all HTTP routes
 app.use(express.json());
 
 const server = http.createServer(app);
 export const io = new Server(server, {
     cors: {
-        origin: '*', // Allow all origins
-        methods: ['GET', 'POST'], // Allow specific HTTP methods
-    },
+        origin: [
+            'http://localhost:5173',
+            /\.ngrok-(free|app)\.app$/
+        ],
+        credentials: true,
+    }
 });
 const PORT = 8080;
 
