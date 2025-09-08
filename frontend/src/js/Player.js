@@ -52,13 +52,13 @@ export default class Player extends GameObject {
 
 
         let move = 0;
-        if (keys['KeyW']) move += 1;
-        if (keys['KeyS']) move -= 1;
+        if (keys['KeyW'] || keys["ArrowUp"]) move += 1;
+        if (keys['KeyS'] || keys["ArrowDown"]) move -= 1;
 
         this.isMoving = move !== 0;
 
-        if (keys['KeyA']) this.facingAngle -= rotationSpeed * deltaTime;
-        if (keys['KeyD']) this.facingAngle += rotationSpeed * deltaTime;
+        if (keys['KeyA'] || keys["ArrowLeft"]) this.facingAngle -= rotationSpeed * deltaTime;
+        if (keys['KeyD'] || keys["ArrowRight"]) this.facingAngle += rotationSpeed * deltaTime;
 
         const moveStepX = Math.cos(this.facingAngle) * move * moveSpeed * deltaTime;
         const moveStepY = Math.sin(this.facingAngle) * move * moveSpeed * deltaTime;
