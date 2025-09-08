@@ -24,6 +24,7 @@ export default class MainMenu extends State {
             <div class="menu-frame">
                 <h1 class="title">web-game</h1>
                 <button id="host" class="menu-item">Host Game</button>
+                <button id="single" class="menu-item">Single Game</button>
                 <button id="join" class="menu-item">Join Game</button>
                 <button id="settings" class="menu-item">Settings</button>
                 <button id="guide" class="menu-item">Guide</button>
@@ -33,7 +34,14 @@ export default class MainMenu extends State {
         this.addEventListener(document.getElementById("host"), "click",() => {
             audio.playButtonClick();
             state.isHost = true;
-            this.gameEntryDialog("host");
+            state.isSingleGame = true;
+            this.gameEntryDialog("single");
+        })
+
+        this.addEventListener(document.getElementById("single"), 'click', ()=>{
+            audio.playButtonClick();
+            this.state.isSingleGame=true;
+            this.gameEntryDialog('single')
         })
 
         this.addEventListener(document.getElementById("join"), "click",() => {
@@ -212,7 +220,7 @@ export default class MainMenu extends State {
         username.value = state.username ? state.username : "";
         form.appendChild(username);
 
-        if (mode === "join") {
+        if (mode === "join" || mode === "single") {
             const gameId = document.createElement("input");
             gameId.name = "gameId";
             gameId.classList.add("menu-item");
@@ -242,8 +250,8 @@ export default class MainMenu extends State {
 
         if (checkedUsername) {
             state.username = checkedUsername;
-            if (mode === "host") {
-                hostGame(checkedUsername);
+            if (mode === "host" || mode === "single") {
+                hostGame({ username: checkedUsername, single: mode === 'single' });
             } else {
                 joinGame(formData.get("gameId"), checkedUsername);
             }

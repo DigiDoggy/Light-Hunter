@@ -288,8 +288,12 @@ export function getMyId() {
     return socket.id;
 }
 
-export function hostGame(username) {
-    socket.emit("hostGame", { username });
+export function hostGame(payload) {
+    socket.emit("hostGame", { payload });
+}
+
+export function singleGame(){
+    socket.emit('single:game')
 }
 
 export function updateReadyStatus(status) {
