@@ -20,6 +20,10 @@ export function regGameHandlers(socket) {
                 socket.emit("error", `Game with id ${gameId} not found`);
                 return;
             }
+            if (Object.keys(game.players).length >= 4) {
+                socket.emit("error", "Game lobby is full");
+                return;
+            }
             if (game.status !== Game.Status.LOBBY) {
                 socket.emit("error", `Game has already started`);
                 return;

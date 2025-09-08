@@ -16,6 +16,7 @@ export default class Lobby extends State {
     constructor() {
         super();
         this.playerList = null;
+        this.playerListTitle = null;
         this.readyButton = null;
         this.error = "";
     }
@@ -71,6 +72,8 @@ export default class Lobby extends State {
     }
 
     updatePlayerList() {
+        this.playerListTitle.textContent = "Player list " + Object.keys(state.players).length + "/4";
+        
         this.playerList.innerHTML = "";
         for (const [id, player] of Object.entries(state.players)) {
             const playerEl = document.createElement("div");
@@ -168,7 +171,8 @@ export default class Lobby extends State {
         playerListContainer.className = "player-list-container";
 
         const title = document.createElement("p");
-        title.textContent = "Player list"
+        this.playerListTitle = title;
+        title.textContent = "Player list " + Object.keys(state.players).length + "/4";
         playerListContainer.append(title)
 
         this.playerList = document.createElement("div");
