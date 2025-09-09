@@ -3,8 +3,19 @@ import Timer from "./Timer.js";
 import BonusManager from "./BonusManager.js";
 import {walls, WORLD} from "./mapData.js";
 import {DEV_MODE, io} from "./server.js";
+import {spawn} from 'child_process';
+import path from 'path';
+import {fileURLToPath} from 'url';
+
+const fileName= fileURLToPath(import.meta.url);
+const dirname = path.dirname(fileName);
+
+const PYTHON_BIN = process.env.PYTHON_PATH || 'python3'
+const BOT_SCRIPT = path.join(dirname, "bots", "main.py");
 
 let games = new Map();
+
+
 
 export function regGameHandlers(socket) {
     const handlers = {
@@ -12,16 +23,29 @@ export function regGameHandlers(socket) {
             const game = new Game(io, socket);
             const player = game.addPlayer(socket, payload.username, true);
 
-                games.set(game.id, game);
+            games.set(game.id, game);
+
             game.isSingle = !!payload.isSingle;
             if (game.isSingle){
                 game.gameKey = crypto.randomUUID().slice(0, 8);
             }
 
             socket.emit("hostGame", { gameId: game.id, player: player,gameKey: game.gameKey  });
+
+            const botNum  = Number(payload.count || 0);
+            const botDiff = Number(payload.difficulty || 1);
+            console.log("bot num , bot dfff" , botNum,botDiff)
+            if (game.isSingle && botNum > 0) {
+                game.spawnBots(botNum, botDiff );
+            }
         },
         "joinGame": ({ gameId, username, key }) => {
             const game = games.get(gameId);
+
+            if (!game) {
+                socket.emit("error", `Game with id ${gameId} not found`);
+                return;
+            }
 
             if (game.isSingle) {
                 if (!key || key !== game.gameKey) {
@@ -29,10 +53,6 @@ export function regGameHandlers(socket) {
                 }
             }
 
-            if (!game) {
-                socket.emit("error", `Game with id ${gameId} not found`);
-                return;
-            }
             if (Object.keys(game.players).length >= 4) {
                 socket.emit("error", "Game lobby is full");
                 return;
@@ -54,6 +74,7 @@ export function regGameHandlers(socket) {
 
     Object.entries(handlers).forEach(([event, handler]) => socket.on(event, handler));
 }
+
 
 function deleteGame(id) {
     games.delete(id);
@@ -80,6 +101,7 @@ export default class Game {
         this.status = Status.LOBBY;
         this.isSingle=false;
         this.gameKey=null;
+        this.botProcesses=[];
 
         //timer
         this.timer = new Timer({
@@ -98,6 +120,46 @@ export default class Game {
             size: 28,
             attempts: 30,
         });
+    }
+
+    spawnBots(botNumber=0, botDiff=1){
+        if (botNumber>3 || botNumber <0){
+            return ;
+        }
+        if(botDiff<1 || botDiff>3){
+            return;
+        }
+
+        for (let i =0; i<botNumber; i ++){
+            const args = [BOT_SCRIPT, this.id, this.gameKey, String(botDiff)];
+
+            const proc = spawn(PYTHON_BIN, args, {
+                stdio: ["ignore", "pipe", "pipe"],
+                env: {
+                    ...process.env,
+                    SERVER_URL: process.env.SERVER_URL || "http://localhost:8080",
+                },
+            });
+
+            proc.stdout.on("data", d => console.log(`[bot ${proc.pid}] ${d.toString().trim()}`));
+            proc.stderr.on("data", d => console.error(`[bot ${proc.pid} ERR] ${d.toString().trim()}`));
+            proc.on("exit", (code, sig) => {
+                console.log(`[bot ${proc.pid}] exit code=${code} sig=${sig}`);
+                this.botProcesses = this.botProcesses.filter(p => p.pid !== proc.pid);
+            });
+
+            this.botProcesses ??= [];
+            this.botProcesses.push(proc);
+            console.log(`Spawned bot pid=${proc.pid} game=${this.id} diff=${botDiff}`);
+        }
+    }
+
+    killBots() {
+        if (!this.botProcesses) return;
+        for (const p of this.botProcesses) {
+            try { p.kill("SIGTERM"); } catch (e) { console.error("kill bot", e); }
+        }
+        this.botProcesses = [];
     }
 
     onTimerEnd(reason) {
@@ -316,6 +378,15 @@ export default class Game {
 
     endGame(reason) {
         this.reset();
+
+        if (this.isSingle){
+            this.killBots();
+            this.isSingle=false;
+
+            this.status = (reason === "manual") ? Game.Status.LOBBY : Game.Status.ENDED;
+            this.broadcast("game:ended", {reason, players: this.players});
+            return;
+        }
         if (reason === "manual") {
             this.status = Status.LOBBY;
         } else {
@@ -325,7 +396,16 @@ export default class Game {
     }
 
     restartGame() {
+
         this.reset();
+        if (this.isSingle){
+            this.killBots();
+            if (Object.keys(this.players).length < 2) {
+                this.broadcast("game:ended", { reason: "manual" });
+                return;
+            }
+            this.startGame();
+        }
         if (Object.keys(this.players).length < 2) {
             this.broadcast("game:ended", { reason: "manual" });
             return;
@@ -344,6 +424,15 @@ export default class Game {
 
     async endSession(reason = null) {
         this.broadcast("session:end", { reason });
+
+        if (this.isSingle){
+            this.killBots();
+            this.reset();
+            const sockets = await this.io.in(this.id).fetchSockets();
+            sockets.forEach((s) => this.cleanupSocket(s));
+            deleteGame(this.id);
+            return;
+        }
         this.reset();
         const sockets = await this.io.in(this.id).fetchSockets();
         sockets.forEach((socket) => this.cleanupSocket(socket));
