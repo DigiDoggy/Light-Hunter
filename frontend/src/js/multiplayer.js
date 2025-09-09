@@ -140,7 +140,11 @@ class SocketHandler {
             if (reason === "manual") {
                 console.log("manual")
                 state.reset();
-                state.switchState("lobby");
+                if (state.isSingleGame){
+                    state.switchState("mainMenu");
+                }else{
+                    state.switchState('lobby')
+                }
                 return;
             }
 
