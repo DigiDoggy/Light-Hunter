@@ -40,8 +40,7 @@ export default class MainMenu extends State {
         this.addEventListener(document.getElementById("single"), 'click', ()=>{
             audio.playButtonClick();
             state.isHost=true;
-            state.isSingleGame=true;
-            this.gameEntryDialog('single')
+            this.singleplayer();
         })
 
         this.addEventListener(document.getElementById("join"), "click",() => {
@@ -63,6 +62,55 @@ export default class MainMenu extends State {
         if (state.gameId) {
             this.gameEntryDialog("join")
         }
+    }
+
+    singleplayer() {
+        state.isSingleGame=true;
+        state.username = state.username ? state.username : "You";
+        let botCount = 2;
+        let botDifficulty = 2;
+        const diff = {
+            1: "Easy",
+            2: "Medium",
+            3: "Hard",
+        };
+
+        const container = this.popupMenu(this.container, "singleplayer");
+
+        // language=HTML
+        container.innerHTML = `
+            <p id="botCount">Bot count: ${botCount}</p>
+            <input id="botCountSlider" class="volume-slider" type="range" min="1" max="3">
+            <div style="height: 20px"></div>
+            <p id="botDifficulty">Difficulty: <span class="${diff[botDifficulty]}">${diff[botDifficulty]}</span></p>
+            <input id="botDifficultySlider" class="volume-slider" type="range" min="1" max="3">
+            <div style="height: 20px"></div>
+            <button id="playSingleplayer" style="width: 300px" class="menu-item">Play</button>
+        `
+        this.container.append(container);
+
+        const botCountEl = document.getElementById("botCount");
+        const botCountSlider = document.getElementById("botCountSlider");
+        botCountSlider.value = botCount;
+        this.addEventListener(botCountSlider, "input", (e)=>{
+            botCount = e.target.value;
+            botCountEl.textContent = "Bot count: " + botCount;
+        });
+
+        const botDifficultyEl = document.getElementById("botDifficulty");
+        const botDifficultySlider = document.getElementById("botDifficultySlider");
+        this.addEventListener(botDifficultySlider, "input", (e)=>{
+            botDifficulty = e.target.value;
+            //language=html
+            botDifficultyEl.innerHTML = `
+                Difficulty:
+                <span class="${diff[botDifficulty]}">${diff[botDifficulty]}</span>
+            `
+        });
+
+        this.addEventListener(document.getElementById("playSingleplayer"), "click", ()=> {
+            hostGame({username: state.username, botCount, botDifficulty});
+        });
     }
 
     settings() {
@@ -204,6 +252,7 @@ export default class MainMenu extends State {
     }
 
     gameEntryDialog(mode) {
+        if (state.username === "You") state.username = null;
         const frame = this.popupMenu(this.container, "game-entry-dialog");
 
         const errorMessage = document.createElement("p")
