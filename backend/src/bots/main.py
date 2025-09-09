@@ -104,12 +104,18 @@ from math import hypot
 
 
 
-def get_target_player(state_players, bot_id, bot_position):
+def get_target_player(state_players, bot_id, bot_position, isseeker):
 
     try:
-
-        others = [p for p in state_players.values() if p['id'] != bot_id and not p['isCaught']]
-    except:
+        print(state_players)
+        others = [p for p in state_players.values() if p['id'] != bot_id and not p['isCaught'] and p['flashOn']]
+        print(state_players)
+        if isseeker:
+            others = [p for p in others if p['role'] == 'hider']
+        else:
+            others = [p for p in others if p['role'] == 'seeker']
+    except Exception as e:
+        print(e)
         others = []
     if not others:
         return None
@@ -123,9 +129,7 @@ def get_target_player(state_players, bot_id, bot_position):
             min_dist = dist
     return closest
 def get_flee_target(bot_position, seeker, map_width, map_height, flee_distance=600):
-    """
-    Compute a target point away from the seeker, clamped within map bounds.
-    """
+
     dx = bot_position['x'] - seeker['x']
     dy = bot_position['y'] - seeker['y']
     distance = hypot(dx, dy)
@@ -152,15 +156,16 @@ def update_bot_target(bot_position, bot_id, state_players, walls, compute_path):
 
     last_chase_time = now
 
-    target = get_target_player(players_data, bot_id, bot_position)
+    target = get_target_player(players_data, bot_id, bot_position, bot_role == 'seeker')
     if not target:
+        print("No target")
         return  # no target available
     if bot_role == 'seeker':
         print("Chasing")
 
         target_pos = {'x': target['x'], 'y': target['y']}
     else:  # hider → move away
-        print("hiding")
+        print("hiding", flush=True)
 
         target_pos = get_flee_target(bot_position, target, map_width=2000, map_height=2000)
 
@@ -176,7 +181,6 @@ BOT_FLASHON = True
 def update_player(pid, data):
     global BOT_FLASHON
 
-    """Update or create a player entry safely"""
     global players_data
     if pid not in players_data:
         players_data[pid] = {}
@@ -327,7 +331,7 @@ def handle_start_game(data):
     print("Game started:", data)
 
     bot_role = data[bot_id]['role']
-    bot_position = {"x": data[bot_id]['x'], "y": data[bot_id]['y'], "facingAngle": 0, "isMoving": False}
+    bot_position = {"x": data[bot_id]['x'], "y": data[bot_id]['y'], "facingAngle": 0, "isMoving": False, 'flashOn': True, 'isCaught': False}
     ready = True
 
     print("Game started:", data)
@@ -337,6 +341,7 @@ def caught(data):
     global ready, BOT_FLASHON
     if data == bot_id:
         ready = False
+
 
 @sio.on("dashboard:action")
 def handle_pause(data):
@@ -383,6 +388,7 @@ def move_bot(delta_time):
     bot_position["facingAngle"] = math.atan2(dy, dx)
     bot_position["isMoving"] = True
     bot_position['flashOn'] = BOT_FLASHON
+    bot_position['isCaught'] = False
 
     sio.emit("move", bot_position)
 @sio.on('game:ended')
@@ -418,6 +424,8 @@ def main():
         else:
             bot_position["isMoving"] = False
             bot_position['flashOn'] = False
+            bot_position['isCaught'] = True
+
             sio.emit("move", bot_position)
 
         time.sleep(0.016)

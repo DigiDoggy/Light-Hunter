@@ -10,7 +10,7 @@ import {fileURLToPath} from 'url';
 const fileName= fileURLToPath(import.meta.url);
 const dirname = path.dirname(fileName);
 
-const PYTHON_BIN = process.env.PYTHON_PATH || 'python3'
+const PYTHON_BIN = process.env.PYTHON_PATH || 'python'
 const BOT_SCRIPT = path.join(dirname, "bots", "main.py");
 
 let games = new Map();
@@ -248,7 +248,7 @@ export default class Game {
         });
 
         //player
-        socket.on('move', ({x, y, facingAngle, isMoving, flashOn}) => {
+        socket.on('move', ({x, y, facingAngle, isMoving, flashOn,isCaught}) => {
             if (this.isPaused) return;
             const p = this.players[socket.id];
             if (!p) return;
@@ -258,9 +258,10 @@ export default class Game {
             p.facingAngle = facingAngle;
             p.isMoving = isMoving;
             p.flashOn = !!flashOn;
+            p.isCaught = isCaught;
 
             socket.to(this.id).emit('playerMoved', {
-                    id: socket.id, x, y, facingAngle, isMoving, flashOn: !!flashOn
+                    id: socket.id, x, y, facingAngle, isMoving, flashOn: !!flashOn, isCaught: p.isCaught, role:p.role
                 }
             );
         });

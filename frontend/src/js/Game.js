@@ -391,7 +391,7 @@ export default class Game extends State {
 
         if(this.status==='running'){
             this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-            sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving, this.player.flashOn);
+            sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving, this.player.flashOn,this.player.isCaught);
 
             this.handleBonusPickup();
         }else{
