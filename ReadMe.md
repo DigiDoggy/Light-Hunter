@@ -13,6 +13,10 @@
 
     * [Architecture](#architecture)
     * [Libraries and Dependencies](#libraries-and-dependencies)
+    * [Python Install (Only for single Mode)](#python-setup-for-bots-single-player-mode)
+         * [Windows](#windows-setup)
+         * [Linux](#linux-setup-debianubuntu)
+         * [MacOs](#macos-setup)
 5. [Running the Project](#running-the-project)
 6. [Configure ngrok](#configure-ngrok)
 7. [Single player Mode](#single-player-mode-npc)
@@ -119,12 +123,103 @@ Bonuses appear on the map:
 
 ---
 
+###  Python Setup for Bots (Single Player Mode)
+
+The **bot logic** in Single Player mode requires Python 3.10+ and several packages.
+Follow the instructions below to install Python and the required dependencies on **Windows, Linux, or macOS**.
+
+---
+
+## Windows Setup
+
+1. **Install Python**
+
+   * Download the latest Python installer: [python.org/downloads/windows](https://www.python.org/downloads/windows/)
+   * During installation, check **“Add Python to PATH”**.
+
+2. **Verify installation**
+
+   ```powershell
+   python --version
+   pip --version
+   ```
+
+3. **Install dependencies**
+
+   ```powershell
+   pip install websocket-client python-socketio requests
+   ```
+
+---
+
+## Linux Setup (Debian/Ubuntu)
+
+1. **Install Python and pip**
+
+   ```bash
+   sudo apt update
+   sudo apt install -y python3 python3-pip
+   ```
+
+2. **Verify installation**
+
+   ```bash
+   python3 --version
+   pip3 --version
+   ```
+
+3. **Install dependencies**
+
+   ```bash
+   pip3 install websocket-client python-socketio requests
+   ```
+
+**On Fedora:**
+
+```bash
+sudo dnf install -y python3 python3-pip
+```
+
+**On Arch Linux:**
+
+```bash
+sudo pacman -S python python-pip
+```
+
+---
+
+## macOS Setup
+
+### Option A — via Homebrew (recommended)
+
+1. **Install Homebrew** (if not installed): [brew.sh](https://brew.sh)
+
+2. **Install Python**
+
+   ```bash
+   brew install python@3.11
+   ```
+
+3. **Verify installation**
+
+   ```bash
+   python3 --version
+   pip3 --version
+   ```
+
+4. **Install dependencies**
+
+   ```bash
+   pip3 install websocket-client python-socketio requests
+   ```
+---
+
 ## Running the Project
 
 1. Clone the repository:
 
    ```bash
-   git clone <repo-url>
+   git clone <https://gitea.kood.tech/iljaaituganov/web-game.git>
    cd <repo-folder>
    ```
 
