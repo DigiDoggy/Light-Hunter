@@ -109,7 +109,7 @@ export default class MainMenu extends State {
         });
 
         this.addEventListener(document.getElementById("playSingleplayer"), "click", ()=> {
-            hostGame({username: state.username, botCount, botDifficulty});
+            hostGame({username: state.username, count: botCount, difficulty: botDifficulty, isSingle: true});
         });
     }
 
