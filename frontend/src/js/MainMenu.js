@@ -22,7 +22,7 @@ export default class MainMenu extends State {
         // language=HTML
         this.container.innerHTML = `
             <div class="menu-frame">
-                <h1 class="title">web-game</h1>
+                <h1 style="font-size: 30px" class="title">Light Hunter</h1>
                 <button id="host" class="menu-item">Host Game</button>
                 <button id="single" class="menu-item">Single Game</button>
                 <button id="join" class="menu-item">Join Game</button>
