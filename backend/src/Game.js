@@ -20,19 +20,14 @@ export function regGameHandlers(socket) {
 
             socket.emit("hostGame", { gameId: game.id, player: player,gameKey: game.gameKey  });
         },
-        "joinGame": ({ gameId, username, key, isBot=false,difficulty=1 }) => {
+        "joinGame": ({ gameId, username, key }) => {
             const game = games.get(gameId);
 
-            if (isBot) {
+            if (game.isSingle) {
                 if (!key || key !== game.gameKey) {
                     return socket.emit("error", "Bot key invalid");
                 }
-            } else {
-                if (game.isSingle && Object.values(game.players).some(p => !p.isBot)) {
-                    return socket.emit("error", "Host already present");
-                }
             }
-
 
             if (!game) {
                 socket.emit("error", `Game with id ${gameId} not found`);
@@ -51,8 +46,6 @@ export function regGameHandlers(socket) {
                 return;
             }
                 const player = game.addPlayer(socket, username);
-                player.isBot = isBot;
-                player.botDifficulty = difficulty;
                 socket.emit("joinGame", { gameId: game.id, player: player });
 
 
@@ -126,7 +119,6 @@ export default class Game {
         //todo here is mistake (cant test without bots)
         let seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];
         /* get bot player */
-        const botid = playerIds.find(id => this.players[id].username === 'bot');
         playerIds.forEach(id => {
             const player = this.players[id];
             if (id === seekerId) {
@@ -295,8 +287,7 @@ export default class Game {
     //setting timer for game
 
     startGame(durationMs = 5 * 60000) {
-        //todo check start game if one player in single game(only for dev mode)
-        if (!DEV_MODE && Object.keys(this.players).length < 1) return;
+        if (!DEV_MODE && Object.keys(this.players).length < 2) return;
         this.status = Status.STARTED;
         this.assignRoles();
         this.timer.start(durationMs);
