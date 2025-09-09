@@ -14,10 +14,10 @@ export default class Flashlight {
                 <feGaussianBlur stdDeviation="15" />
               </filter>
               <mask id="flashlight-mask">
-                <rect width="100%" height="100%" fill="black"/>
+                <rect width="100%" height="100%" fill="white"/>
               </mask>
           </defs>
-          <rect width="100%" height="100%" fill="white" mask="url(#flashlight-mask)" />`;
+          <rect width="100%" height="100%" fill="black" mask="url(#flashlight-mask)" />`;
         this.mask = this.flashlightOverlay.querySelector("#flashlight-mask");
     }
 
