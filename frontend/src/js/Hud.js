@@ -155,7 +155,6 @@ export default class HUD {
             this.game.addEventListener(restart, "click", () => {
                 restartGame();
                 state.reset();
-                state.switchState("game");
             });
         };
 
