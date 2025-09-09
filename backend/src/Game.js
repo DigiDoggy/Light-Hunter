@@ -102,7 +102,6 @@ export default class Game {
         let seekerId = playerIds[Math.floor(Math.random() * playerIds.length)];
         /* get bot player */
         const botid = playerIds.find(id => this.players[id].username === 'bot');
-        seekerId = botid;
         playerIds.forEach(id => {
             const player = this.players[id];
             if (id === seekerId) {

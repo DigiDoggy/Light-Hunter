@@ -188,6 +188,7 @@ export default class Game extends State {
         this.setupPauseHotkey();
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
         this.player.role = state.players[getMyId()].role;
+        this.gameObjects.push(this.player);
         this.gameLoop(5);
     }
 
@@ -282,8 +283,8 @@ export default class Game extends State {
         let closestType = null;
 
         for (const obj of this.gameObjects) {
-            if (obj.type !== "wall" && obj.type != 'player') continue;
-
+            if (obj.type !== "wall" && obj.type !== 'player') continue;
+            if (selfid && obj.id === selfid) continue;
 
             const intersections = this.getRayBoxIntersections(x, y, dx, dy, obj);
 
@@ -293,16 +294,11 @@ export default class Game extends State {
                     closestDist = dist;
                     closestType = obj.type;
                     const npcThreshold = 150;
-                    if (closestType === 'player') {
-                        console.log('seen player', obj.id);
-                        console.log(obj)
-                    }
-                    if (closestType === 'player' && role ==='seeker' && closestDist <= npcThreshold && selfid !== obj.id) {
-                        console.log('caught player', obj.id);
+                    if (closestType === 'player' && role ==='seeker' && closestDist <= npcThreshold) {
                         playerCaught(obj.id);
                     }
-                    if (obj.type === 'player') continue;
                     closest = point;
+
 
                 }
             }
@@ -311,20 +307,21 @@ export default class Game extends State {
     }
 
     getRayBoxIntersections(rx, ry, rdx, rdy, obj) {
-        const {x, y, width, height} = obj;
+        const { x, y, width, height } = obj;
         const lines = [
-            {x1: x, y1: y, x2: x + width, y2: y},
-            {x1: x + width, y1: y, x2: x + width, y2: y + height},
-            {x1: x + width, y1: y + height, x2: x, y2: y + height},
-            {x1: x, y1: y + height, x2: x, y2: y},
+            { x1: x, y1: y, x2: x + width, y2: y },
+            { x1: x + width, y1: y, x2: x + width, y2: y + height },
+            { x1: x + width, y1: y + height, x2: x, y2: y + height },
+            { x1: x, y1: y + height, x2: x, y2: y },
         ];
 
         const points = [];
         for (const line of lines) {
             const pt = this.getLineIntersection(rx, ry, rdx, rdy, line);
-            if (pt) points.push(pt);
+            if (pt) {
+                points.push(pt);
+            }
         }
-
         return points;
     }
 
@@ -417,9 +414,9 @@ export default class Game extends State {
             {
                 this.wasCaught();
             }
-            this.updateFlashlightCone();
 
         }
+        this.updateFlashlightCone();
 
         audio.updatePosition(this.player.x, this.player.y);
 
@@ -457,8 +454,8 @@ export default class Game extends State {
             if (id === getMyId()) continue;
             const p = players[id];
             if (!p.flashOn) continue;
-            const centerX = p.x;
-            const centerY = p.y;
+            const centerX = p.x + this.player.width / 2;
+            const centerY = p.y + this.player.height / 2;
             addConeForPlayer(centerX, centerY, p.facingAngle || 0, p.role, p.id);
         }
     }
