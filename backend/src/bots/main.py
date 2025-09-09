@@ -15,6 +15,7 @@ bot_id = None
 bot_position = {"x": 100, "y": 100, "facingAngle": 0, "isMoving": False}
 bot_speed = 175
 ready = False
+pause = False
 walls = [
     {"x": 0, "y": 0, "width": 2000, "height": 84},
     {"x": 0, "y": 0, "width": 32, "height": 2000},
@@ -337,11 +338,13 @@ def caught(data):
     if data == bot_id:
         ready = False
 
-
-
-
-
-
+@sio.on("dashboard:action")
+def handle_pause(data):
+    global pause
+    if data["action"] == "pause":
+        pause = True
+    elif data["action"] == "resume":
+        pause = False
 
 bot_path = []
 
@@ -386,6 +389,7 @@ def move_bot(delta_time):
 def end(data):
     global ready
     ready = False
+    sio.emit('updateReadyStatus',True)
 
 @sio.on('error')
 def on_error(data):
@@ -408,8 +412,7 @@ def main():
         current_time = time.time()
         delta_time = current_time - last_time
         last_time = current_time
-
-        if ready:
+        if ready and not pause:
             update_bot_target(bot_position, bot_id, players_data, walls, compute_path)
             move_bot(delta_time)
         else:

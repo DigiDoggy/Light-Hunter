@@ -148,6 +148,7 @@ export default class Game extends State {
                 this.player.vx = 0; this.player.vy = 0;
                 this.player.updatePosition?.();
             }
+            Object.values(state.players).forEach((p) => p.isMoving = false);
         } else if (newStatus === "running") {
             if (this.player) {
                 this.player.canControl = true;

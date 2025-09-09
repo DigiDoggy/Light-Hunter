@@ -131,7 +131,7 @@ export default class Game {
         }
 
         for (let i =0; i<botNumber; i ++){
-            const args = [BOT_SCRIPT, this.id, this.gameKey, String(botDiff)];
+            const args = ["-u", BOT_SCRIPT, this.id, this.gameKey, String(botDiff)];
 
             const proc = spawn(PYTHON_BIN, args, {
                 stdio: ["ignore", "pipe", "pipe"],
@@ -380,8 +380,8 @@ export default class Game {
         this.reset();
 
         if (this.isSingle){
-            this.killBots();
-            this.isSingle=false;
+            // this.killBots();
+            // this.isSingle=false;
 
             this.status = (reason === "manual") ? Game.Status.LOBBY : Game.Status.ENDED;
             this.broadcast("game:ended", {reason, players: this.players});
@@ -399,12 +399,13 @@ export default class Game {
 
         this.reset();
         if (this.isSingle){
-            this.killBots();
+            // this.killBots();
             if (Object.keys(this.players).length < 2) {
                 this.broadcast("game:ended", { reason: "manual" });
                 return;
             }
             this.startGame();
+            return;
         }
         if (Object.keys(this.players).length < 2) {
             this.broadcast("game:ended", { reason: "manual" });
