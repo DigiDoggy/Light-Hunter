@@ -1,3 +1,4 @@
+# Code created by aleksandervahk
 import random
 import sys
 
