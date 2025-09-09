@@ -55,7 +55,7 @@ export default class Lobby extends State {
         this.renderMapSection(frame);
         this.renderReadyButton(frame);
         this.renderBackButton(this.container);
-        this.renderGameId(this.container);
+        if (!state.isSingleGame) this.renderGameId(this.container);
 
         this.container.appendChild(frame);
     }

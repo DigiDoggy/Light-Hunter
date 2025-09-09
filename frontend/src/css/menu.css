@@ -137,3 +137,11 @@
     border: 2px solid black;
 }
 
+.singleplayer {
+    align-items: center;
+    z-index: 10;
+}
+
+.Easy {color: green;}
+.Medium {color: yellow;}
+.Hard {color: red;}
