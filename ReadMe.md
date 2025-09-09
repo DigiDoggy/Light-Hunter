@@ -15,6 +15,15 @@
     * [Libraries and Dependencies](#libraries-and-dependencies)
 5. [Running the Project](#running-the-project)
 6. [Configure ngrok](#configure-ngrok)
+7. [Single player Mode](#single-player-mode-npc)
+
+   * [Description](#description)
+   * [Functional Features](#functional-features)
+   * [Virtual Opponents](#virtual-opponents-npc)
+   * [Difficulty Levels](#difficulty-levels)
+   * [Bot Customization](#bot-customization)
+   * [Bot Limitations](#bot-limitationst)
+   * [System Interaction](#system-interaction)
 
 ---
 
@@ -22,6 +31,9 @@
 
 This project was developed as part of an assignment: to create a multiplayer web game that works **in the browser without Canvas**, using only DOM elements.
 The game must support **2 to 4 players**, ensure smooth animation (60 FPS with `requestAnimationFrame`), and work over the internet, not just on a local network.
+
+A new game mode has been added — **Single Player**, which allows starting the game without connecting other players.  
+In this mode, the player competes against **computer-controlled opponents (bots)**, making it possible to play even without internet access or friends online.
 
 ---
 
@@ -194,3 +206,104 @@ Bonuses appear on the map:
     ![ngrok.png](pic/ngrok.png)
 
 ---
+
+##  Single Player Mode (NPC)
+
+## Description
+A new game mode has been added — **Single Player**, which allows starting the game without connecting other players.  
+In this mode, the player competes against **computer-controlled opponents (bots)**, making it possible to play even without internet access or friends online.
+
+### Single Player features:
+- Play without internet or friends.
+- Choose the number and difficulty of opponents.
+- Battle against realistic NPCs that mimic human players.
+- Customize opponents’ characteristics for diverse gameplay.
+
+---
+
+## Functional Features
+
+### Enabling the mode
+In the **main menu**, the player can choose:
+- `Host Game` — online multiplayer (as before)
+- `Single Game` — play with bots
+
+When starting **Single Game**:
+- the host player **does not allow incoming client connections**;
+- an internal session is created only for the local player and the chosen number of bots.
+
+---
+
+### Number of players
+- Gameplay requires **2 to 4 participants**.
+- The player can select **1, 2, or 3 bots**.
+- The final number of participants is always: **1 human + N bots**.
+
+---
+
+### Gameplay
+- The game logic is **identical to multiplayer**: roles `seeker/hider`, timer, bonuses, collisions, camera, flashlights.
+- Difference: movement and actions of opponents are controlled by **NPC algorithms**.
+
+---
+
+## 🤖Virtual Opponents (NPC)
+
+### Behavior algorithm
+- Bots use **pathfinding algorithms (A\*)**, taking obstacles into account.
+- NPC roles (seeker or hider) are assigned the same way as for real players.
+- If the bot is a **seeker** → it chases the nearest player.
+- If the bot is a **hider** → it flees from the seeker, moving in the opposite direction.
+
+---
+
+## Difficulty Levels
+Three difficulty levels are available (selected before starting the game):
+
+### Easy
+- Weak strategy.
+- Frequently makes mistakes and delays.
+- Rarely achieves objectives.
+
+### Medium
+- Solid strategy.
+- Executes plans fairly well, but not always.
+- Comfortable for the player, but still risky.
+
+### Hard
+- Maximum efficiency.
+- Excellent target selection, almost no mistakes.
+- Forces the player to play at full capacity.
+
+> ⚖️ Difficulty level works as a **multiplier of characteristics** (speed, success rate, reaction time).
+
+---
+
+## Bot Customization
+Before starting the game, the player can adjust each bot’s characteristics:
+- movement speed,
+- strategy (aggressive, cautious, etc.),
+- success probability in actions.
+
+Difficulty level affects how often the bot locks onto new targets:
+- **Easy** — every 15 seconds
+- **Medium** — every 10 seconds
+- **Hard** — every 5 seconds
+
+---
+
+## Bot Limitations
+- Bots **cannot** pause, restart, or quit the game.
+- All control actions (`Pause / Resume / Quit`) are available **only to the real player**.
+
+---
+
+## System Interaction
+In **Single Player mode**:
+- an **internal session** is created (no game key required),
+- the server **does not accept incoming socket connections**,
+- bot logic runs locally via a **Python script**.
+
+---
+
+
