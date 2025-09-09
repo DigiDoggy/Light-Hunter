@@ -32,10 +32,11 @@ export function regGameHandlers(socket) {
 
             socket.emit("hostGame", { gameId: game.id, player: player,gameKey: game.gameKey  });
 
-            const botNum  = Number(payload.botNum || 0);
-            const botDiff = Number(payload.botDiff || 1);
+            const botNum  = Number(payload.count || 0);
+            const botDiff = Number(payload.difficulty || 1);
+            console.log("bot num , bot dfff" , botNum,botDiff)
             if (game.isSingle && botNum > 0) {
-                game.spawnBots(botNum, botDiff);
+                game.spawnBots(botNum, botDiff );
             }
         },
         "joinGame": ({ gameId, username, key }) => {
