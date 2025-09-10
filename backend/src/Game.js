@@ -10,7 +10,7 @@ import {fileURLToPath} from 'url';
 const fileName= fileURLToPath(import.meta.url);
 const dirname = path.dirname(fileName);
 
-const PYTHON_BIN = process.env.PYTHON_PATH || 'python'
+const PYTHON_BIN = process.env.PYTHON_PATH || 'python3'
 const BOT_SCRIPT = path.join(dirname, "bots", "main.py");
 
 let games = new Map();
