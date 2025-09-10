@@ -9,11 +9,11 @@ import math
 # Create a Socket.IO client
 sio = socketio.Client()
 players_data = {}  # key: player id, value: dict with x, y, isCaught, etc.
-host, key, diff = None, None, None
+host, key, diff, speed = None, None, None, None
 
 bot_id = None
 bot_position = {"x": 100, "y": 100, "facingAngle": 0, "isMoving": False}
-bot_speed = 175
+bot_speed = 125 if speed == '1' else 175 if speed == '2' else 225
 ready = False
 pause = False
 walls = [
@@ -402,10 +402,11 @@ def on_error(data):
     print("Error:", data)
 
 def main():
-    global  host, key, diff
+    global  host, key, diff, speed
     host = sys.argv[1]
     key = sys.argv[2]
     diff = sys.argv[3]
+    speed = sys.argv[4]
 
 
     sio.connect("http://localhost:8080")

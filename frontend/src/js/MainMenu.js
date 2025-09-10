@@ -74,6 +74,7 @@ export default class MainMenu extends State {
             2: "Medium",
             3: "Hard",
         };
+        let botSpeed = 2;
 
         const container = this.popupMenu(this.container, "singleplayer");
 
@@ -109,7 +110,17 @@ export default class MainMenu extends State {
         });
 
         this.addEventListener(document.getElementById("playSingleplayer"), "click", ()=> {
-            hostGame({username: state.username, count: botCount, difficulty: botDifficulty, isSingle: true});
+            hostGame({username: state.username, count: botCount, difficulty: [botDifficulty,botSpeed], isSingle: true});
+        });
+        const botSpeedEl = document.getElementById("botSpeed");
+        const botSpeedSlider = document.getElementById("botSpeedSlider");
+        this.addEventListener(botSpeedSlider, "input", (e)=>{
+            botSpeed = e.target.value;
+            //language=html
+            botSpeedEl.innerHTML = `
+                Speed:
+                <span class="${diff[botSpeed]}">${diff[botSpeed]}</span>
+            `
         });
     }
 

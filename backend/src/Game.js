@@ -33,10 +33,11 @@ export function regGameHandlers(socket) {
             socket.emit("hostGame", { gameId: game.id, player: player,gameKey: game.gameKey  });
 
             const botNum  = Number(payload.count || 0);
-            const botDiff = Number(payload.difficulty || 1);
+            const botDiff = Number(payload.difficulty[0] || 1);
+            const botSpeed = Number(payload.difficulty[1] || 1);
             console.log("bot num , bot dfff" , botNum,botDiff)
             if (game.isSingle && botNum > 0) {
-                game.spawnBots(botNum, botDiff );
+                game.spawnBots(botNum, botDiff,botSpeed);
             }
         },
         "joinGame": ({ gameId, username, key }) => {
@@ -122,7 +123,7 @@ export default class Game {
         });
     }
 
-    spawnBots(botNumber=0, botDiff=1){
+    spawnBots(botNumber=0, botDiff=1,botSpeed=1){
         if (botNumber>3 || botNumber <0){
             return ;
         }
@@ -131,7 +132,7 @@ export default class Game {
         }
 
         for (let i =0; i<botNumber; i ++){
-            const args = ["-u", BOT_SCRIPT, this.id, this.gameKey, String(botDiff)];
+            const args = ["-u", BOT_SCRIPT, this.id, this.gameKey, String(botDiff), String(botSpeed)];
 
             const proc = spawn(PYTHON_BIN, args, {
                 stdio: ["ignore", "pipe", "pipe"],
