@@ -385,6 +385,10 @@ Difficulty level affects how often the bot locks onto new targets:
 - **Medium** — every 10 seconds
 - **Hard** — every 5 seconds
 
+  Speed level:
+- **Easy** — 125
+- **Medium** — 175 (same as player)
+- **Hard** — 225
 ---
 
 ## Bot Limitations
