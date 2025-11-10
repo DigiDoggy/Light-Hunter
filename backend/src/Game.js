@@ -24,18 +24,25 @@ export function regGameHandlers(socket) {
             const player = game.addPlayer(socket, payload.username, true);
 
             games.set(game.id, game);
+            let botNum;
+            let botDiff;
+            let botSpeed;
+
 
             game.isSingle = !!payload.isSingle;
+            console.log("Is Single ",payload.isSingle)
             if (game.isSingle){
                 game.gameKey = crypto.randomUUID().slice(0, 8);
+
+                 botNum  = Number(payload.count || 0);
+                 botDiff = Number(payload.difficulty[0] || 1);
+                 botSpeed = Number(payload.difficulty[1] || 1);
             }
 
             socket.emit("hostGame", { gameId: game.id, player: player,gameKey: game.gameKey  });
 
-            const botNum  = Number(payload.count || 0);
-            const botDiff = Number(payload.difficulty[0] || 1);
-            const botSpeed = Number(payload.difficulty[1] || 1);
-            console.log("bot num , bot dfff" , botNum,botDiff)
+
+
             if (game.isSingle && botNum > 0) {
                 game.spawnBots(botNum, botDiff,botSpeed);
             }
