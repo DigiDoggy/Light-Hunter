@@ -35,7 +35,7 @@ export default class GameObject {
     }
 
     remove() {
-        if (this.element ) {
+        if (this.element) {
             this.element.remove();
         }
     }

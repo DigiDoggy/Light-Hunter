@@ -1,4 +1,3 @@
-/* eslint-env es6 */
 'use strict';
 
 import io from 'socket.io-client';
@@ -16,7 +15,7 @@ class SocketHandler {
 
     registerSocketEvents() {
 
-        socket.on('room:init', ({ players, mapId, bonuses: list, timer, paused}) => {
+        socket.on('room:init', ({players, mapId, bonuses: list, timer, paused}) => {
             state.players = players || {};
             state.map = allMaps.find(m => m.id === mapId) || state.map;
             bonuses = {};
@@ -24,25 +23,26 @@ class SocketHandler {
             state.isPaused = !!paused;
 
             if (timer?.remainingMs != null) {
-                state.timer = { serverNow: Date.now(), remainingMs: timer.remainingMs };
+                state.timer = {serverNow: Date.now(), remainingMs: timer.remainingMs};
             }
 
             window.dispatchEvent(
-                new CustomEvent('players:sync', { detail: { players: state.players } }
+                new CustomEvent('players:sync', {detail: {players: state.players}}
                 ));
 
             window.dispatchEvent(
-                new CustomEvent('bonus:sync',   { detail: { bonuses } }
+                new CustomEvent('bonus:sync', {detail: {bonuses}}
                 ));
 
             if (timer?.remainingMs != null) {
                 window.dispatchEvent(
                     new CustomEvent('timer:update', {
-                        detail: { remainingMs: timer.remainingMs, serverNow: Date.now() } }
+                            detail: {remainingMs: timer.remainingMs, serverNow: Date.now()}
+                        }
                     ));
             }
-            if (paused){
-                window.dispatchEvent(new CustomEvent('hud:banner', { detail: { action: 'pause' } }));
+            if (paused) {
+                window.dispatchEvent(new CustomEvent('hud:banner', {detail: {action: 'pause'}}));
             }
 
         });
@@ -50,32 +50,30 @@ class SocketHandler {
         //players
         socket.on("getPlayers", (players) => {
             state.players = players;
-            console.log("getPlayers", players);
             window.dispatchEvent(
-                new CustomEvent('players:sync', { detail: { players: state.players } }
+                new CustomEvent('players:sync', {detail: {players: state.players}}
                 ));
         });
 
         socket.on("newPlayer", (player) => {
             state.players[player.id] = player;
-            console.log('New player joined:', player);
             window.dispatchEvent(
-                new CustomEvent('players:sync', { detail: { players: state.players } }
+                new CustomEvent('players:sync', {detail: {players: state.players}}
                 ));
 
         });
 
         socket.on('playerDisconnected', (payload) => {
-            const { id, username } = (typeof payload === 'string')
-                ? { id: payload, username: state.players?.[payload]?.username }
+            const {id, username} = (typeof payload === 'string')
+                ? {id: payload, username: state.players?.[payload]?.username}
                 : payload;
 
             window.dispatchEvent(new CustomEvent('hud:toast', {
-                detail: { title: 'Player left', text: username || id, tone: 'neutral', ttl: 2500 }
+                detail: {title: 'Player left', text: username || id, tone: 'neutral', ttl: 2500}
             }));
 
             delete state.players[id];
-            window.dispatchEvent(new CustomEvent('players:sync', { detail: { players: state.players } }));
+            window.dispatchEvent(new CustomEvent('players:sync', {detail: {players: state.players}}));
         });
 
         socket.on("playerMoved", (player) => {
@@ -93,8 +91,7 @@ class SocketHandler {
         socket.on("hostGame", (data) => {
             this.onHostJoinResponse(data);
             if (data.gameKey) {
-                state.gameKey=data.gameKey;
-                console.log('Single-game key:', data.gameKey);
+                state.gameKey = data.gameKey;
             }
         })
 
@@ -109,7 +106,6 @@ class SocketHandler {
                 return;
             }
             state.map = map;
-            console.log("map updated", mapId);
         })
 
         socket.on("updateSkin", (player) => {
@@ -119,42 +115,38 @@ class SocketHandler {
         socket.on("updateReadyStatus", (player) => {
             if (player.id === socket.id) state.readyStatus = player.readyStatus;
             state.players[player.id].readyStatus = player.readyStatus;
-            console.log("update ready status:", player);
         })
 
 
         socket.on('startGame', (data) => {
             if (data) state.players = data;
             state.gameStatus = 'started';
-            window.dispatchEvent(new CustomEvent('players:sync', { detail: { players: state.players } }));
+            window.dispatchEvent(new CustomEvent('players:sync', {detail: {players: state.players}}));
 
             const seeker = Object.values(state.players || {}).find(p => p.role === 'seeker');
             window.dispatchEvent(new CustomEvent('hud:toast', {
-                detail: { title: 'Match started!', text: `Seeker: ${seeker?.username || '—'}`, tone: 'info', ttl: 2500 }
+                detail: {title: 'Match started!', text: `Seeker: ${seeker?.username || '—'}`, tone: 'info', ttl: 2500}
             }));
         });
 
-        socket.on('game:ended', ({ reason }) => {
+        socket.on('game:ended', ({reason}) => {
             state.gameStatus = 'ended';
 
-            console.log("game:ended", reason);
             if (reason === "manual") {
-                console.log("manual")
                 state.reset();
                 state.switchState("lobby");
                 return;
             }
 
-            window.dispatchEvent(new CustomEvent('hud:gameover', { detail: { reason } }));
+            window.dispatchEvent(new CustomEvent('hud:gameover', {detail: {reason}}));
             window.dispatchEvent(new CustomEvent('hud:toast', {
-                detail: { title: 'Match ended', text: reason || '', tone: 'neutral', ttl: 3000 }
+                detail: {title: 'Match ended', text: reason || '', tone: 'neutral', ttl: 3000}
             }));
             state.reset();
         });
 
         socket.on("error", (err) => {
             state.error = err;
-            console.log(err);
         })
 
         socket.on("playerCaught", (playerId) => {
@@ -166,20 +158,20 @@ class SocketHandler {
 
         //timer/pause/resume
 
-        socket.on('timer:update', ({ serverNow, remainingMs }) => {
-            state.timer = { serverNow, remainingMs };
+        socket.on('timer:update', ({serverNow, remainingMs}) => {
+            state.timer = {serverNow, remainingMs};
             window.dispatchEvent(
-                new CustomEvent('timer:update', { detail: { remainingMs, serverNow }}
-            ));
+                new CustomEvent('timer:update', {detail: {remainingMs, serverNow}}
+                ));
         });
 
-        socket.on('timer:adjust', ({ pickupTimeBonus, newRemainingMs }) => {
+        socket.on('timer:adjust', ({pickupTimeBonus, newRemainingMs}) => {
             if (typeof pickupTimeBonus === 'number' && pickupTimeBonus !== 0) {
                 const sign = pickupTimeBonus > 0 ? '+' : '−';
                 window.dispatchEvent(new CustomEvent('hud:toast', {
                     detail: {
                         title: 'Timer',
-                        text: `${sign}${Math.abs(pickupTimeBonus/1000)}s`,
+                        text: `${sign}${Math.abs(pickupTimeBonus / 1000)}s`,
                         tone: pickupTimeBonus > 0 ? 'info' : 'danger',
                         ttl: 1500
                     }
@@ -187,34 +179,35 @@ class SocketHandler {
             }
         });
 
-        socket.on('dashboard:action', ({ byId, byName, action }) => {
+        socket.on('dashboard:action', ({byId, byName, action}) => {
             state.isPaused = action === 'pause';
 
             window.dispatchEvent(new CustomEvent('hud:banner', {
-                detail: { byId, byName, action }
+                detail: {byId, byName, action}
             }));
 
             if (action === 'pause') {
                 window.dispatchEvent(new CustomEvent('hud:toast', {
-                    detail: { title: 'Pause', text: `Paused by: ${byName || playerName(byId)}`, tone: 'warning', ttl: 2500 }
+                    detail: {
+                        title: 'Pause',
+                        text: `Paused by: ${byName || playerName(byId)}`,
+                        tone: 'warning',
+                        ttl: 2500
+                    }
                 }));
             } else if (action === 'resume') {
                 window.dispatchEvent(new CustomEvent('hud:toast', {
-                    detail: { title: 'Resume', text: `Resumed by: ${byName || playerName(byId)}`, tone: 'success', ttl: 2000 }
+                    detail: {
+                        title: 'Resume',
+                        text: `Resumed by: ${byName || playerName(byId)}`,
+                        tone: 'success',
+                        ttl: 2000
+                    }
                 }));
             }
         });
 
-
-        // socket.on('game:ended', ({ reason }) => {
-        //     window.dispatchEvent(
-        //         new CustomEvent('hud:gameover', { detail: { reason }}
-        //         ));
-        //     state.gameStatus = 'ended';
-        // });
-
-        socket.on("session:end", ({ reason }) => {
-            console.log("session:end", reason);
+        socket.on("session:end", ({reason}) => {
             state.reset();
             state.switchState("mainMenu");
 
@@ -233,34 +226,34 @@ const sock = new SocketHandler();
 export default sock;
 
 //Sockets for bonus
-socket.on('bonus:list', (list)=>{
-    bonuses={};
-    list.forEach(b=> bonuses[b.id]= b)
-    window.dispatchEvent(new CustomEvent('bonus:sync', {detail:{bonuses}}))
+socket.on('bonus:list', (list) => {
+    bonuses = {};
+    list.forEach(b => bonuses[b.id] = b)
+    window.dispatchEvent(new CustomEvent('bonus:sync', {detail: {bonuses}}))
 });
 
-socket.on('bonus:spawn', (b)=>{
-    bonuses[b.id]=b;
-    window.dispatchEvent(new CustomEvent('bonus:spawn', {detail:b}))
+socket.on('bonus:spawn', (b) => {
+    bonuses[b.id] = b;
+    window.dispatchEvent(new CustomEvent('bonus:spawn', {detail: b}))
 });
 
-socket.on('bonus:remove', (id)=>{
+socket.on('bonus:remove', (id) => {
     delete bonuses[id];
-    window.dispatchEvent(new CustomEvent('bonus:remove', { detail: { id } }));
+    window.dispatchEvent(new CustomEvent('bonus:remove', {detail: {id}}));
 });
 
-socket.on('player:buff', ({ playerId, type, durationMs }) => {
+socket.on('player:buff', ({playerId, type, durationMs}) => {
     window.dispatchEvent(new CustomEvent('player:buff', {
-        detail: { playerId, type, durationMs }
+        detail: {playerId, type, durationMs}
     }));
 });
 
-socket.on('bonus:picked', ({ by, bonusId, type }) => {
+socket.on('bonus:picked', ({by, bonusId, type}) => {
     const local = bonuses[bonusId];
     delete bonuses[bonusId];
 
     window.dispatchEvent(new CustomEvent('bonus:picked', {
-        detail: { id: bonusId, by, type, bonus: local }
+        detail: {id: bonusId, by, type, bonus: local}
     }));
 
     window.dispatchEvent(new CustomEvent('hud:toast', {
@@ -275,16 +268,18 @@ socket.on('bonus:picked', ({ by, bonusId, type }) => {
 
 
 // Multiplayer utility functions
-export function sendPlayerMove(x, y, facingAngle = 0, isMoving = false, flashOn=true, isCaught=false) {
-    socket.emit('move', { x, y, facingAngle, isMoving, flashOn, isCaught });
+export function sendPlayerMove(x, y, facingAngle = 0, isMoving = false, flashOn = true, isCaught = false) {
+    socket.emit('move', {x, y, facingAngle, isMoving, flashOn, isCaught});
 }
-export function pickupBonus(bonusId, px, py){
+
+export function pickupBonus(bonusId, px, py) {
     socket.emit('bonus:pickup', {bonusId, px, py})
 }
 
 export function getPlayers() {
     socket.emit("getPlayers");
 }
+
 export function getBonuses() {
     return bonuses;
 }
@@ -294,13 +289,12 @@ export function getMyId() {
 }
 
 export function hostGame(payload) {
-   const {isSingle}=payload;
-    console.log("single game bol ",isSingle)
+    const {isSingle} = payload;
 
-    socket.emit("hostGame", { payload });
+    socket.emit("hostGame", {payload});
 }
 
-export function singleGame(){
+export function singleGame() {
     socket.emit('single:game')
 }
 
@@ -313,8 +307,9 @@ export function updateSkin(skinIndex) {
 }
 
 export function joinGame(gameId, username) {
-    socket.emit("joinGame", { gameId, username });
+    socket.emit("joinGame", {gameId, username});
 }
+
 export function playerCaught(playerId) {
     socket.emit("catch", playerId);
 }
@@ -333,9 +328,10 @@ export function isHost() {
     return Boolean(me && me.isHost);
 }
 
-export function hostPauseGame()  {
+export function hostPauseGame() {
     socket.emit('game:pause');
 }
+
 export function resumeGame() {
     socket.emit('game:resume');
 }
@@ -349,15 +345,19 @@ export function endGame() {
 }
 
 export function isPaused() {
-    console.log("state.isPaused",state.isPaused)
     return !!state.isPaused;
 }
+
 function bonusLabel(type) {
     switch (type) {
-        case 'speed': return 'Speed';
-        case 'vision': return 'Vision';
-        case 'timeShift': return 'Time';
-        default: return type || 'Bonus';
+        case 'speed':
+            return 'Speed';
+        case 'vision':
+            return 'Vision';
+        case 'timeShift':
+            return 'Time';
+        default:
+            return type || 'Bonus';
     }
 }
 

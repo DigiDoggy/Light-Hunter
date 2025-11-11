@@ -31,30 +31,30 @@ export default class MainMenu extends State {
             </div>
         `;
 
-        this.addEventListener(document.getElementById("host"), "click",() => {
+        this.addEventListener(document.getElementById("host"), "click", () => {
             audio.playButtonClick();
             state.isHost = true;
             this.gameEntryDialog("host");
         })
 
-        this.addEventListener(document.getElementById("single"), 'click', ()=>{
+        this.addEventListener(document.getElementById("single"), 'click', () => {
             audio.playButtonClick();
-            state.isHost=true;
+            state.isHost = true;
             this.singleplayer();
         })
 
-        this.addEventListener(document.getElementById("join"), "click",() => {
+        this.addEventListener(document.getElementById("join"), "click", () => {
             audio.playButtonClick();
             state.isHost = false;
             this.gameEntryDialog("join");
         })
 
-        this.addEventListener(document.getElementById("settings"), "click",() => {
+        this.addEventListener(document.getElementById("settings"), "click", () => {
             audio.playButtonClick();
             this.settings();
         })
 
-        this.addEventListener(document.getElementById("guide"), "click",() => {
+        this.addEventListener(document.getElementById("guide"), "click", () => {
             audio.playButtonClick();
             this.guide();
         })
@@ -65,7 +65,7 @@ export default class MainMenu extends State {
     }
 
     singleplayer() {
-        state.isSingleGame=true;
+        state.isSingleGame = true;
         state.username = state.username ? state.username : "You";
         let botCount = 2;
         let botDifficulty = 2;
@@ -93,14 +93,14 @@ export default class MainMenu extends State {
         const botCountEl = document.getElementById("botCount");
         const botCountSlider = document.getElementById("botCountSlider");
         botCountSlider.value = botCount;
-        this.addEventListener(botCountSlider, "input", (e)=>{
+        this.addEventListener(botCountSlider, "input", (e) => {
             botCount = e.target.value;
             botCountEl.textContent = "Bot count: " + botCount;
         });
 
         const botDifficultyEl = document.getElementById("botDifficulty");
         const botDifficultySlider = document.getElementById("botDifficultySlider");
-        this.addEventListener(botDifficultySlider, "input", (e)=>{
+        this.addEventListener(botDifficultySlider, "input", (e) => {
             botDifficulty = e.target.value;
             //language=html
             botDifficultyEl.innerHTML = `
@@ -109,12 +109,17 @@ export default class MainMenu extends State {
             `
         });
 
-        this.addEventListener(document.getElementById("playSingleplayer"), "click", ()=> {
-            hostGame({username: state.username, count: botCount, difficulty: [botDifficulty,botSpeed], isSingle: true});
+        this.addEventListener(document.getElementById("playSingleplayer"), "click", () => {
+            hostGame({
+                username: state.username,
+                count: botCount,
+                difficulty: [botDifficulty, botSpeed],
+                isSingle: true
+            });
         });
         const botSpeedEl = document.getElementById("botSpeed");
         const botSpeedSlider = document.getElementById("botSpeedSlider");
-        this.addEventListener(botSpeedSlider, "input", (e)=>{
+        this.addEventListener(botSpeedSlider, "input", (e) => {
             botSpeed = e.target.value;
             //language=html
             botSpeedEl.innerHTML = `
@@ -155,7 +160,7 @@ export default class MainMenu extends State {
 
         parent.append(title, display, slider);
     }
-    
+
     guide() {
         const frame = this.popupMenu(this.container, "guide");
         this.controls(frame);
@@ -311,7 +316,7 @@ export default class MainMenu extends State {
         if (checkedUsername) {
             state.username = checkedUsername;
             const isSingle = (mode === 'single');
-            if (mode === "host" || mode ==='single') {
+            if (mode === "host" || mode === 'single') {
                 hostGame({username: checkedUsername, isSingle});
             } else {
                 joinGame(formData.get("gameId"), checkedUsername);

@@ -1,6 +1,6 @@
 import state from "./AppStateManager.js";
-import { allMaps } from "./map.js";
-import {updateSkin, updateMap, getPlayers, updateReadyStatus, leaveGame, getMyId} from "./multiplayer.js";
+import {allMaps} from "./map.js";
+import {getMyId, getPlayers, leaveGame, updateMap, updateReadyStatus, updateSkin} from "./multiplayer.js";
 import "../css/lobby.css";
 import State from "./State.js";
 import audio from "./AudioManager.js";
@@ -36,7 +36,7 @@ export default class Lobby extends State {
         this.onSocket("playerDisconnected", () => this.updatePlayerList());
         this.onSocket("updateMap", () => this.openMapSelectorButton.style.backgroundImage = `url(${state.map.imagePath})`);
         this.onSocket("startGame", () => state.switchState("game"));
-        this.onSocket("updateReadyStatus", ({ id, readyStatus}) => {
+        this.onSocket("updateReadyStatus", ({id, readyStatus}) => {
             this.updatePlayerList();
             if (id === getMyId()) {
                 if (readyStatus === true) this.readyButton.classList.add("ready");
@@ -93,7 +93,7 @@ export default class Lobby extends State {
 
     updatePlayerList() {
         this.playerListTitle.textContent = "Player list " + Object.keys(state.players).length + "/4";
-        
+
         this.playerList.innerHTML = "";
         for (const [id, player] of Object.entries(state.players)) {
             const playerEl = document.createElement("div");
@@ -178,9 +178,6 @@ export default class Lobby extends State {
             state.readyStatus = ready;
             updateReadyStatus(ready);
             readyButton.classList.toggle("ready")
-
-            // dev
-            // state.switchState("game");
         })
 
         readyContainer.appendChild(readyButton);
@@ -209,7 +206,7 @@ export default class Lobby extends State {
         skinSelectorTitle.textContent = "Skin";
         const skinSelectorButton = document.createElement("img");
         skinSelectorButton.className = "skin-selector-button menu-item"
-        this.prepareSkin(skinSelectorButton, 3,state.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
+        this.prepareSkin(skinSelectorButton, 3, state.skinIndex, ANIMATION_DIRECTIONS.FRONT, 1);
 
         this.addEventListener(skinSelectorButton, "click", () => {
             audio.playButtonClick();
@@ -248,7 +245,7 @@ export default class Lobby extends State {
         skinMenu.appendChild(skins);
     }
 
-    prepareSkin(element, scale = 3,skinIndex, direction, animation) {
+    prepareSkin(element, scale = 3, skinIndex, direction, animation) {
         const mapWidth = 384 * scale;
         const mapHeight = 384 * scale;
         const frameWidth = 32 * scale;

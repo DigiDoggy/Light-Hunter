@@ -1,6 +1,7 @@
 export default class Player {
     #socket;
     #game;
+
     constructor(game, socket, username, isHost) {
         this.#game = game;
         this.#socket = socket;
@@ -25,12 +26,12 @@ export default class Player {
     registerSocketHandlers(socket) {
         socket.on("updateSkin", (skinIndex) => {
             this.skinIndex = skinIndex;
-            this.#game.broadcast("updateSkin", { id: this.id, skinIndex: this.skinIndex });
+            this.#game.broadcast("updateSkin", {id: this.id, skinIndex: this.skinIndex});
         });
 
         socket.on("updateReadyStatus", (status) => {
             this.readyStatus = status;
-            this.#game.broadcast("updateReadyStatus", { id: this.id, readyStatus: this.readyStatus });
+            this.#game.broadcast("updateReadyStatus", {id: this.id, readyStatus: this.readyStatus});
 
             for (const player of Object.values(this.#game.players)) {
                 if (player.readyStatus === false) return;

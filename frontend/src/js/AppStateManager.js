@@ -1,7 +1,7 @@
 import Game from './Game';
 import MainMenu from './MainMenu';
 import Lobby from './Lobby';
-import { Map1, allMaps } from "./map";
+import {Map1} from "./map";
 import audio from "./AudioManager.js";
 
 class AppStateManager {
@@ -19,15 +19,14 @@ class AppStateManager {
         this.username = null;
         this.skinIndex = null;
         this.readyStatus = false;
-        this.isPaused=false
+        this.isPaused = false
         this.players = {};
         this.map = Map1;
 
         this.gameId = null;
         this.gameStatus = null; // lobby, started, ended, paused
-        this.isSingleGame=false
-        this.gameKey=null
-
+        this.isSingleGame = false
+        this.gameKey = null
 
         this.settings = {};
         this.error = null;
@@ -37,14 +36,11 @@ class AppStateManager {
 
     init() {
         this.setGameId(window.location.pathname);
-        // this.switchState("mainMenu");
-        // this.switchState("lobby");
-        // this.switchState("game")
     }
 
     reset() {
         this.readyStatus = false;
-        this.isPaused=false
+        this.isPaused = false
     }
 
     setGameId(gameId) {

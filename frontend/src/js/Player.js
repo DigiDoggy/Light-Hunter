@@ -1,40 +1,27 @@
-import { checkCollision } from "./collision.js";
+import {checkCollision} from "./collision.js";
 import GameObject from "./GameObject.js";
 import audio from "./AudioManager.js";
 // todo need create array of bonuses
 export default class Player extends GameObject {
-    constructor({x, y, width = 32, height = 48, username = "player", speed = 175, gameContainer,
-                    facingAngle = 0, characterIndex= 0, role='hider', isLocal = false}) {
+    constructor({
+                    x, y, width = 32, height = 48, username = "player", speed = 175, gameContainer,
+                    facingAngle = 0, characterIndex = 0, role = 'hider', isLocal = false
+                }) {
         super({x, y, width, height, type: "player", gameContainer});
         this.facingAngle = facingAngle;
         this.username = username;
-        this.baseSpeed= speed;
         this.speed = speed;
         this.isMoving = false;
         this.role = role;
         this.solid = true;
         this.animationTimer = 0;
         this.currentFrame = 0;
-        this.characterIndex= characterIndex;
-        this.effects={};
+        this.characterIndex = characterIndex;
+        this.effects = {};
         this.canControl = true;
-        this.flashOn=true;
+        this.flashOn = true;
         this.isLocal = isLocal;
         this.id = null;
-    }
-
-    setRole(role){
-        this.role=role;
-    }
-
-    setBaseSpeed(newBase){
-        this.baseSpeed=newBase;
-        if (!this.effects?.speed){
-            this.speed=newBase;
-        }
-    }
-    resetSpeedToBase(){
-        this.speed = this.baseSpeed;
     }
 
     handleMovement(keys, delta, spatialGrid, gridSize) {
@@ -71,7 +58,7 @@ export default class Player extends GameObject {
             height: this.height,
         };
 
-        const collisionX = checkCollision(playerBoundsX, spatialGrid, gridSize, this.type==='spectator');
+        const collisionX = checkCollision(playerBoundsX, spatialGrid, gridSize, this.type === 'spectator');
         if (collisionX) {
             if (moveStepX > 0) this.x = collisionX.bounds.x - this.width;
             else if (moveStepX < 0) this.x = collisionX.bounds.x + collisionX.bounds.width;
@@ -87,7 +74,7 @@ export default class Player extends GameObject {
         };
 
 
-        const collisionY = checkCollision(playerBoundsY, spatialGrid, gridSize, this.type==='spectator');
+        const collisionY = checkCollision(playerBoundsY, spatialGrid, gridSize, this.type === 'spectator');
         if (collisionY) {
             if (moveStepY > 0) this.y = collisionY.bounds.y - this.height;
             else if (moveStepY < 0) this.y = collisionY.bounds.y + collisionY.bounds.height;
@@ -139,6 +126,7 @@ export default class Player extends GameObject {
         if (normalizedAngle >= 5 * Math.PI / 4 && normalizedAngle < 7 * Math.PI / 4) return "up";
         return "right";
     }
+
     updateSkinFrame(direction, frame) {
         const frameWidth = 32;
         const frameHeight = 48;
@@ -163,8 +151,7 @@ export default class Player extends GameObject {
     }
 
     //set skins (0-11)
-    setCharacterIndex(index){
-
-        this.characterIndex=index;
+    setCharacterIndex(index) {
+        this.characterIndex = index;
     }
 }

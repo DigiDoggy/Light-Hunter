@@ -15,7 +15,7 @@ export default class Camera {
         const screenW = window.innerWidth;
         const screenH = window.innerHeight;
 
-        const translateX = (screenW / 2) - (playerCenterX*this.zoomLevel - 500);
+        const translateX = (screenW / 2) - (playerCenterX * this.zoomLevel - 500);
         const translateY = (screenH / 2) - (playerCenterY * this.zoomLevel - 500);
 
         this.gameContainer.style.transform = `translate(${translateX}px, ${translateY}px) scale(${this.zoomLevel})`;

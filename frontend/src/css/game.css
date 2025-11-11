@@ -11,7 +11,7 @@ body {
     border-radius: 50%;
     left: 100px;
     top: 100px;
-    box-shadow: 0 0 0 9999px rgba(0,0,0,0.85);
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
 }
 
 .game-container {
@@ -33,7 +33,7 @@ body {
     image-rendering: pixelated;
 }
 
-.spectator{
+.spectator {
     position: absolute;
     background: none !important;
 }
@@ -41,29 +41,29 @@ body {
 
 .wall {
     position: absolute;
-    /*background: cyan;*/
-    /*border: 2px solid green;*/
     box-sizing: border-box;
 
 }
 
-.bonus{
-    position:absolute;
+.bonus {
+    position: absolute;
 }
 
-.bonus--speed{
+.bonus--speed {
     background-image: url('../assets/skins/bonusBox/speed.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
 }
-.bonus--vision{
+
+.bonus--vision {
     background-image: url('../assets/skins/bonusBox/openMap.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
 }
-.bonus--timeShift{
+
+.bonus--timeShift {
     background-image: url('../assets/skins/bonusBox/timeShift.png');
     background-size: contain;
     background-repeat: no-repeat;
@@ -95,7 +95,7 @@ body {
 }
 
 .hud__seeker-name {
-    background: rgba(0,0,0,.45);
+    background: rgba(0, 0, 0, .45);
     padding: 6px 10px;
     border-radius: 8px;
     backdrop-filter: blur(6px);
@@ -126,7 +126,7 @@ body {
 }
 
 .hud__timer-text {
-    background: rgba(0,0,0,.6);
+    background: rgba(0, 0, 0, .6);
     padding: 8px 14px;
     border-radius: 10px;
     font-weight: 700;
@@ -146,8 +146,9 @@ body {
     display: grid;
     gap: 6px;
 }
+
 .hud__hiders-list li {
-    background: rgba(0,0,0,.45);
+    background: rgba(0, 0, 0, .45);
     padding: 6px 10px;
     border-radius: 8px;
     text-align: right;
@@ -165,11 +166,7 @@ body {
 }
 
 .hud__center-msg {
-    /*position: absolute;*/
-    /*top: 35%;*/
-    /*left: 50%;*/
-    /*transform: translate(-50%, -35%);*/
-    background: rgba(0,0,0,.55);
+    background: rgba(0, 0, 0, .55);
     padding: 14px 20px;
     border-radius: 12px;
     text-align: center;
@@ -189,7 +186,6 @@ body {
     width: 250px;
     height: 50px;
     font-size: 24px;
-    /*border: none;*/
     border-radius: 10px;
     margin-top: 5px;
     border: 1px solid black;
@@ -202,6 +198,7 @@ body {
     font-weight: 800;
     margin-bottom: 6px;
 }
+
 .hud__center-sub {
     font-size: 14px;
     opacity: .9;
@@ -223,27 +220,53 @@ body {
     max-width: 320px;
     padding: 10px 12px;
     border-radius: 10px;
-    background: rgba(0,0,0,0.75);
+    background: rgba(0, 0, 0, 0.75);
     color: #fff;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
     font-size: 14px;
     animation: hudToastIn .18s ease-out both;
     pointer-events: auto;
 }
 
 @keyframes hudToastIn {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
-.hud__toast-title { font-weight: 700; margin-bottom: 4px; }
-.hud__toast-text { opacity: .9; }
+.hud__toast-title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
 
-.hud__toast--info { background: rgba(40, 120, 255, 0.85); }
-.hud__toast--success { background: rgba(22, 163, 74, 0.85); }
-.hud__toast--warning { background: rgba(234, 179, 8, 0.9); }
-.hud__toast--neutral { background: rgba(100, 116, 139, 0.85); }
-.hud__toast--danger { background: rgba(244, 63, 94, 0.9); }
+.hud__toast-text {
+    opacity: .9;
+}
+
+.hud__toast--info {
+    background: rgba(40, 120, 255, 0.85);
+}
+
+.hud__toast--success {
+    background: rgba(22, 163, 74, 0.85);
+}
+
+.hud__toast--warning {
+    background: rgba(234, 179, 8, 0.9);
+}
+
+.hud__toast--neutral {
+    background: rgba(100, 116, 139, 0.85);
+}
+
+.hud__toast--danger {
+    background: rgba(244, 63, 94, 0.9);
+}
 
 

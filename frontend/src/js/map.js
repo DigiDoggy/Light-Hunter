@@ -4,9 +4,9 @@ export const Map1 = {
     walls: [
         // border
         {x: 0, y: 0, width: 2000, height: 84, border: true},
-        {x: 0, y: 0, width: 32, height: 2000,border: true},
-        {x: 0, y: 1960, width: 2000, height: 40,border: true},
-        {x: 1960, y: 0, width: 40, height: 2000,border: true},
+        {x: 0, y: 0, width: 32, height: 2000, border: true},
+        {x: 0, y: 1960, width: 2000, height: 40, border: true},
+        {x: 1960, y: 0, width: 40, height: 2000, border: true},
 
         {x: 151, y: 199, width: 220, height: 73},
         {x: 151, y: 273, width: 32, height: 301},

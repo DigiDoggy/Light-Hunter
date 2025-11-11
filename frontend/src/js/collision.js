@@ -1,9 +1,9 @@
-export function checkCollision(playerBounds, spatialGrid, gridSize,spectator=false) {
+export function checkCollision(playerBounds, spatialGrid, gridSize, spectator = false) {
     const nearbyCells = getNearbyGridCells(playerBounds, gridSize);
     for (let cellKey of nearbyCells) {
         const obj = spatialGrid[cellKey] || null;
         if (!obj || !obj.solid) continue;
-        if (obj.width != 2000 && obj.height != 2000 && spectator) continue;
+        if (obj.width !== 2000 && obj.height !== 2000 && spectator) continue;
         if (rectanglesOverlap(playerBounds, obj.bounds)) {
             return obj;
         }
@@ -28,21 +28,6 @@ export function updateSpatialGrid(gameObjects, gridSize) {
         }
     }
     return grid;
-}
-
-function getGridCellsForObject(bounds, gridSize) {
-    const cells = [];
-    const startX = Math.floor(bounds.x / gridSize);
-    const endX = Math.floor((bounds.x + bounds.width) / gridSize);
-    const startY = Math.floor(bounds.y / gridSize);
-    const endY = Math.floor((bounds.y + bounds.height) / gridSize);
-
-    for (let x = startX; x <= endX; x++) {
-        for (let y = startY; y <= endY; y++) {
-            cells.push(`${x},${y}`);
-        }
-    }
-    return cells;
 }
 
 function getNearbyGridCells(bounds, gridSize) {

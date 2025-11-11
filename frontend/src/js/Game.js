@@ -4,13 +4,13 @@ import {updateSpatialGrid} from "./collision.js";
 import Player from "./Player.js";
 import GameObject from "./GameObject.js";
 import {
-    getPlayers,
     getMyId,
-    sendPlayerMove,
-    pickupBonus,
+    hostPauseGame,
     isPaused,
+    pickupBonus,
+    playerCaught,
     resumeGame,
-    hostPauseGame, isHost, playerCaught
+    sendPlayerMove
 } from "./multiplayer.js";
 import Camera from "./Camera.js";
 import Flashlight from "./Flashlight.js";
@@ -34,7 +34,7 @@ export default class Game extends State {
         this.spatialGrid = [];
         this.keys = {};
         this.lastTime = performance.now();
-        this.status='running'
+        this.status = 'running'
         this.hud = new HUD(this.gameContainer, this);
 
         //for Bonus Box timing
@@ -47,7 +47,7 @@ export default class Game extends State {
         });
 
         this.addEventListener(window, 'bonus:picked', (e) => {
-            const { id, by, type } = e.detail || {};
+            const {id, by, type} = e.detail || {};
             this.removeBonusById(id);
 
             if (by === getMyId()) {
@@ -56,7 +56,7 @@ export default class Game extends State {
         });
 
         this.addEventListener(window, 'player:buff', (e) => {
-            const { playerId, type, durationMs } = e.detail || {};
+            const {playerId, type, durationMs} = e.detail || {};
             if (playerId !== getMyId()) return;
 
             const def = BonusBox.defs?.[type];
@@ -82,7 +82,7 @@ export default class Game extends State {
                     def.revert?.(player, this);
                     delete player.effects[type];
                 }, durationMs);
-                player.effects[type] = { timer, revert: def.revert };
+                player.effects[type] = {timer, revert: def.revert};
             }
         });
 
@@ -97,8 +97,8 @@ export default class Game extends State {
             this.removeBonusById(e.detail.id);
         });
         this.addEventListener(window, 'hud:banner', (e) => {
-            const { action, byName } = e.detail || {};
-            if (action === 'pause')  {
+            const {action, byName} = e.detail || {};
+            if (action === 'pause') {
                 this.setStatus('paused');
                 this.hud.showCenterMessage('Paused', byName ? `Paused by: ${byName}` : '', 0);
             }
@@ -121,14 +121,16 @@ export default class Game extends State {
         });
 
         this.addEventListener(window, 'timer:update', (e) => {
-            const { remainingMs } = e.detail;
+            const {remainingMs} = e.detail;
             this.hud.setTimer(remainingMs);
         });
     }
+
     _findSeekerNick(players = {}) {
         const seeker = Object.values(players).find(p => p.role === 'seeker');
         return seeker.username || '';
     }
+
     _collectHiders(players = {}) {
         return Object.values(players)
             .filter(p => p.role === "hider")
@@ -138,14 +140,14 @@ export default class Game extends State {
 
     setStatus(newStatus) {
         this.status = newStatus;
-        console.log("GAME STATUS", this.status);
 
         if (newStatus === "paused" || newStatus === "ended") {
             this.keys = {};
             if (this.player) {
                 this.player.canControl = false;
                 this.player.isMoving = false;
-                this.player.vx = 0; this.player.vy = 0;
+                this.player.vx = 0;
+                this.player.vy = 0;
                 this.player.updatePosition?.();
             }
             Object.values(state.players).forEach((p) => p.isMoving = false);
@@ -156,8 +158,8 @@ export default class Game extends State {
         }
     }
 
-    wasCaught(){
-        this.player.type='spectator';
+    wasCaught() {
+        this.player.type = 'spectator';
         this.player.element.classList.add('spectator');
         if (!Object.values(state.players).some(player => player.isCaught)) {
             this.hud.showCenterMessage('You were caught!', 'You are now a spectator.', 0);
@@ -177,7 +179,8 @@ export default class Game extends State {
             if (overlay.isConnected) {
                 overlay.remove();
             }
-        }}
+        }
+    }
 
     init() {
         audio.playSound("gameMusic");
@@ -196,7 +199,7 @@ export default class Game extends State {
     registerSocketHandlers() {
         const handlers = {
             "dashboard:action": (data) => {
-                const { action } = data;
+                const {action} = data;
                 switch (action) {
                     case "pause":
                         this.hud.controls(state.isHost, "pause");
@@ -206,7 +209,7 @@ export default class Game extends State {
                 }
             },
             "game:ended": (data) => {
-                const { reason } = data;
+                const {reason} = data;
                 if (reason === "manual") return;
                 this.setStatus("ended");
                 if (reason === "seekerWon") {
@@ -233,9 +236,11 @@ export default class Game extends State {
     }
 
     rebuildBonuses(map) {
-        console.log('[bonus] sync', map);
         this.gameObjects = this.gameObjects.filter(o => {
-            if (o.type === 'bonus') { o.remove?.(); return false; }
+            if (o.type === 'bonus') {
+                o.remove?.();
+                return false;
+            }
             return true;
         });
         Object.values(map).forEach(b => this.createBonusFromServer(b));
@@ -244,7 +249,7 @@ export default class Game extends State {
     setupPauseHotkey() {
         let lastToggleAt = 0;
 
-        this.addEventListener(document,'keydown', (e) => {
+        this.addEventListener(document, 'keydown', (e) => {
             if (e.code !== 'Space' || e.repeat) return;
             e.preventDefault();
 
@@ -253,24 +258,25 @@ export default class Game extends State {
             lastToggleAt = now;
 
 
-            if (isPaused()){
+            if (isPaused()) {
                 resumeGame();
-            }else{
+            } else {
                 hostPauseGame();
             }
         });
     }
 
     createBonusFromServer(b) {
-        console.log('[bonus] spawn', b)
         const bonus = new BonusBox(b.x, b.y, b.size, b.type, this.gameContainer, b.id);
         this.gameObjects.push(bonus);
     }
 
     removeBonusById(id) {
-        console.log('[bonus] remove', id);
         this.gameObjects = this.gameObjects.filter(o => {
-            if (o.type === 'bonus' && o.id === id) { o.remove?.(); return false; }
+            if (o.type === 'bonus' && o.id === id) {
+                o.remove?.();
+                return false;
+            }
             return true;
         });
     }
@@ -295,7 +301,7 @@ export default class Game extends State {
                     closestDist = dist;
                     closestType = obj.type;
                     const npcThreshold = 150;
-                    if (closestType === 'player' && role ==='seeker' && closestDist <= npcThreshold) {
+                    if (closestType === 'player' && role === 'seeker' && closestDist <= npcThreshold) {
                         playerCaught(obj.id);
                     }
                     closest = point;
@@ -308,12 +314,12 @@ export default class Game extends State {
     }
 
     getRayBoxIntersections(rx, ry, rdx, rdy, obj) {
-        const { x, y, width, height } = obj;
+        const {x, y, width, height} = obj;
         const lines = [
-            { x1: x, y1: y, x2: x + width, y2: y },
-            { x1: x + width, y1: y, x2: x + width, y2: y + height },
-            { x1: x + width, y1: y + height, x2: x, y2: y + height },
-            { x1: x, y1: y + height, x2: x, y2: y },
+            {x1: x, y1: y, x2: x + width, y2: y},
+            {x1: x + width, y1: y, x2: x + width, y2: y + height},
+            {x1: x + width, y1: y + height, x2: x, y2: y + height},
+            {x1: x, y1: y + height, x2: x, y2: y},
         ];
 
         const points = [];
@@ -354,17 +360,24 @@ export default class Game extends State {
 
     createMap() {
         Map1.walls.forEach((wall) => {
-            this.gameObjects.push(new GameObject({x: wall.x, y: wall.y, width: wall.width, height: wall.height, type: "wall", gameContainer: this.container}));
+            this.gameObjects.push(new GameObject({
+                x: wall.x,
+                y: wall.y,
+                width: wall.width,
+                height: wall.height,
+                type: "wall",
+                gameContainer: this.container
+            }));
         })
         this.spatialGrid = updateSpatialGrid(this.gameObjects, this.gridSize);
 
     }
 
     setupEventListeners() {
-        this.addEventListener(document,"keydown", (e) => this.keys[e.code] = true);
-        this.addEventListener(document,"keyup", (e) => this.keys[e.code] = false);
+        this.addEventListener(document, "keydown", (e) => this.keys[e.code] = true);
+        this.addEventListener(document, "keyup", (e) => this.keys[e.code] = false);
 
-        this.addEventListener(document,"keydown", (e) => {
+        this.addEventListener(document, "keydown", (e) => {
             if (e.code === "Escape") {
                 state.switchState("lobby")
             }
@@ -379,9 +392,8 @@ export default class Game extends State {
         if (state.gameStatus === 'ended') this.player.isMoving = false;
 
 
-
         this.delta = (time - this.lastTime) / 1000;
-        if (!Number.isFinite(this.delta) || this.delta < 0 || this.delta > 1){
+        if (!Number.isFinite(this.delta) || this.delta < 0 || this.delta > 1) {
             this.delta = 0;
         }
 
@@ -389,14 +401,15 @@ export default class Game extends State {
 
         // Handle player movement and send updates to the server
 
-        if(this.status==='running'){
+        if (this.status === 'running') {
             this.player.handleMovement(this.keys, this.delta, this.spatialGrid, this.gridSize);
-            sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving, this.player.flashOn,this.player.isCaught);
+            sendPlayerMove(this.player.x, this.player.y, this.player.facingAngle, this.player.isMoving, this.player.flashOn, this.player.isCaught);
 
             this.handleBonusPickup();
-        }else{
+        } else {
             this.player.isMoving = false;
-            this.player.vx = 0; this.player.vy = 0;
+            this.player.vx = 0;
+            this.player.vy = 0;
         }
 
 
@@ -407,12 +420,10 @@ export default class Game extends State {
         this.camera.updateCamera(this.player.x, this.player.y, this.player.width, this.player.height);
 
         if (this.player.type === "spectator") {
-            this.flash.flashlightOverlay.style.opacity=0;
+            this.flash.flashlightOverlay.style.opacity = 0;
             this.player.flashOn = false;
-        }
-        else {
-            if (players[getMyId()].isCaught)
-            {
+        } else {
+            if (players[getMyId()].isCaught) {
                 this.wasCaught();
             }
 
@@ -427,7 +438,7 @@ export default class Game extends State {
     updateFlashlightCone() {
         this.flash.clearCones();
 
-        const addConeForPlayer = (centerX, centerY, direction, role,selfid) => {
+        const addConeForPlayer = (centerX, centerY, direction, role, selfid) => {
             const coneLength = 220;
             const coneDivisor = role === "hider" ? 2 : 0.5;
             const coneAngle = Math.PI / coneDivisor;
@@ -436,7 +447,7 @@ export default class Game extends State {
             for (let i = 0; i <= rayCount; i++) {
                 const angle = direction - coneAngle / 2 + (coneAngle * i) / rayCount;
                 const end = this.castRay(centerX, centerY, angle, coneLength, role, selfid);
-                rays.push({ x: end.x, y: end.y, angle: angle });
+                rays.push({x: end.x, y: end.y, angle: angle});
             }
             rays.sort((a, b) => a.angle - b.angle);
             const points = [`${centerX},${centerY}`];
@@ -469,24 +480,23 @@ export default class Game extends State {
 
             let otherPlayer = this.gameObjects.find(obj => obj.id === id);
             if (!otherPlayer) {
-                console.log("Creating new player object for", playerData);
                 otherPlayer = new Player({
                     x: playerData.x, y: playerData.y, width: 32, height: 48, username: playerData.username,
-                    container: this.container, characterIndex: playerData.skinIndex, role: playerData.role});
+                    container: this.container, characterIndex: playerData.skinIndex, role: playerData.role
+                });
                 otherPlayer.id = id;
                 this.gameObjects.push(otherPlayer);
             } else {
                 otherPlayer.isCaught = playerData.isCaught;
-                if (otherPlayer.isCaught)
-                {
-                    otherPlayer.type='spectator';
+                if (otherPlayer.isCaught) {
+                    otherPlayer.type = 'spectator';
                     otherPlayer.element.classList.add('spectator');
                 }
 
                 otherPlayer.x = playerData.x;
                 otherPlayer.y = playerData.y;
                 otherPlayer.facingAngle = playerData.facingAngle || 0;
-                otherPlayer.isMoving = status === 'ended' ? false : playerData.isMoving ;
+                otherPlayer.isMoving = status === 'ended' ? false : playerData.isMoving;
                 otherPlayer.updatePosition();
                 otherPlayer.animate(this.delta, undefined, otherPlayer.getDirectionFromAngle(), this.player.bounds);
                 otherPlayer.playAudio();
@@ -519,23 +529,14 @@ export default class Game extends State {
                 pb.y < bb.y + bb.height &&
                 pb.y + pb.height > bb.y;
 
-            if(!overlap) continue;
+            if (!overlap) continue;
 
             if (obj.__claimed) continue;
             if (p.type === 'spectator') continue;
-
-            console.log('Picking up bonus', obj);
-
-            // obj.activate(this.player, this);
-
             obj.__claimed = true;
 
-            // if (obj.element && obj.element.isConnected) {
-            // obj.element.remove();
-            // }
             if (obj.id) {
-              console.log('[bonus] pickup request', obj.id);
-              pickupBonus(obj.id, p.x + p.width / 2, p.y + p.height / 2);
+                pickupBonus(obj.id, p.x + p.width / 2, p.y + p.height / 2);
             }
 
         }
@@ -545,7 +546,7 @@ export default class Game extends State {
         audio.stopAllSounds();
         document.body.removeChild(document.querySelector(".hud"))
         const overlay = this.flash?.flashlightOverlay;
-         if (overlay?.isConnected) overlay.remove();
+        if (overlay?.isConnected) overlay.remove();
 
         this.gameObjects?.forEach(o => o.remove?.());
         this.gameObjects = [];

@@ -1,4 +1,3 @@
-// Hud.js
 import state from "./AppStateManager.js";
 import {endGame, leaveGame, restartGame} from "./multiplayer.js";
 
@@ -60,8 +59,8 @@ export default class HUD {
 
     setTimer(ms) {
         const total = Math.max(0, Math.floor(ms / 1000));
-        const mm = String(Math.floor(total / 60)).padStart(2,'0');
-        const ss = String(total % 60).padStart(2,'0');
+        const mm = String(Math.floor(total / 60)).padStart(2, '0');
+        const ss = String(total % 60).padStart(2, '0');
         this.timerText.textContent = `${mm}:${ss}`;
     }
 
@@ -74,7 +73,7 @@ export default class HUD {
         });
     }
 
-    showCenterMessage(text, subtext=null, ttlMs=2000) {
+    showCenterMessage(text, subtext = null, ttlMs = 2000) {
         this.centerMsg.innerHTML = '';
         const t = document.createElement('div');
         t.className = 'hud__center-title';
@@ -97,7 +96,7 @@ export default class HUD {
         this.centerMsg.hidden = true;
     }
 
-    showToast({ title, text='', ttl=2000, tone='info' } = {}) {
+    showToast({title, text = '', ttl = 2000, tone = 'info'} = {}) {
         const wrap = document.createElement('div');
         wrap.className = `hud__toast hud__toast--${tone}`;
 

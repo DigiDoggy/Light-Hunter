@@ -2,11 +2,11 @@ import GameObject from "./GameObject.js";
 import audio from "./AudioManager.js";
 
 export default class BonusBox extends GameObject {
-    constructor(x, y, size = 28, bonusType, gameContainer, id=null) {
+    constructor(x, y, size = 28, bonusType, gameContainer, id = null) {
         super({x, y, width: size, height: size, type: "bonus", gameContainer});
         this.bonusType = bonusType;
         this.solid = false;
-        this.id=id;
+        this.id = id;
         this.element.classList.add(`bonus--${bonusType}`);
         this.element.style.zIndex = "20";
     }
@@ -24,12 +24,12 @@ export default class BonusBox extends GameObject {
                 player.element?.classList.remove("buff-speed");
             }
         },
-        vision:{
+        vision: {
             duration: 5_000,
-            apply(player,game) {
+            apply(player, game) {
                 game.setDarkness?.(false);
             },
-            revert(player, game){
+            revert(player, game) {
                 game.setDarkness?.(true);
             }
         }
@@ -65,7 +65,7 @@ export default class BonusBox extends GameObject {
             delete player.effects[this.bonusType];
         }, def.duration);
 
-        player.effects[this.bonusType] = { timer, revert: def.revert };
+        player.effects[this.bonusType] = {timer, revert: def.revert};
     }
 
 }
